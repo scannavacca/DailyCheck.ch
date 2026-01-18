@@ -283,7 +283,7 @@ export default function NewDocumentationPage() {
             <select
               className="mt-1 w-full rounded-xl border px-3 py-2 text-sm"
               value={docType}
-              onChange={(e) => setDocType(e.target.value)}
+              onChange={(e) => setDocType(e.target.value as typeof docType)}
             >
               {t.docTypes.map((type) => (
                 <option key={type}>{type}</option>

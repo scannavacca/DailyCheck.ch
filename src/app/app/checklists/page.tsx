@@ -28,7 +28,10 @@ type ChecklistModule = {
 };
 
 function SectionIcon({ name }: { name: string }) {
-  const Icon = (Icons as Record<string, ComponentType<{ className?: string }>>)[name] ?? Icons.Square;
+  const Icon =
+    (Icons as unknown as Record<string, import("lucide-react").LucideIcon>)[name] ??
+    Icons.Square;
+
   return <Icon className="h-5 w-5" />;
 }
 
