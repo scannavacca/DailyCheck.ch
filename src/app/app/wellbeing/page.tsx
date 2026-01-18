@@ -134,7 +134,7 @@ export default function WellbeingPage() {
     }
 
     setBusy(true);
-    const nextMessages = [...messages, { role: "user", content: text }];
+    const nextMessages: ChatMsg[] = [...messages, { role: "user" as const, content: text }];
     setMessages(nextMessages);
     setInput("");
 
