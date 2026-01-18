@@ -334,7 +334,7 @@ export default function NewDocumentationPage() {
                   model="small"
                   useVAD={true}
                   variant="compact"
-                  onStatus={(s) => setStatus(s)}
+                  onStatus={(s) => setStatus(s as "Bereit." | "Idle." | "Inattivo." | "Inactif.")}
                   onPartial={(text) => {
                     setPartial(text);
                     setHasDictation(true);
@@ -397,7 +397,7 @@ export default function NewDocumentationPage() {
                 setFinalText("");
                 setPartial("");
                 setHasDictation(false);
-                setStatus(t.status.cleared);
+                setStatus("Bereit.");
               }}
             >
               {t.workspace.clear}
