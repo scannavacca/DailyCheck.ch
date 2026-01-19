@@ -76,7 +76,7 @@ export function PricingSection() {
         <div className="flex items-center gap-3">
           <span className="text-xs font-medium uppercase tracking-[0.3em] text-gray-500">Monatlich</span>
           <div
-            className="relative flex h-10 w-32 items-center rounded-full border border-black/10 bg-white p-1 shadow-sm transition"
+            className="relative flex h-10 w-32 items-center gap-1 rounded-full border border-black/10 bg-white p-1 shadow-sm transition"
             role="group"
             aria-label="Abrechnungszyklus wählen"
           >
@@ -85,8 +85,8 @@ export function PricingSection() {
               onClick={() => setCycle("monthly")}
               className={`relative flex-1 rounded-full py-2 text-sm font-semibold transition ${
                 cycle === "monthly"
-                  ? "bg-black text-white shadow-inner"
-                  : "text-gray-600 hover:text-black"
+                  ? "bg-black text-white shadow-inner hover:text-white"
+                  : "text-gray-600 hover:text-gray-900"
               }`}
             >
               Monatlich
@@ -96,8 +96,8 @@ export function PricingSection() {
               onClick={() => setCycle("yearly")}
               className={`relative flex-1 rounded-full py-2 text-sm font-semibold transition ${
                 cycle === "yearly"
-                  ? "bg-black text-white shadow-inner"
-                  : "text-gray-600 hover:text-black"
+                  ? "bg-black text-white shadow-inner hover:text-white"
+                  : "text-gray-600 hover:text-gray-900"
               }`}
             >
               Jährlich

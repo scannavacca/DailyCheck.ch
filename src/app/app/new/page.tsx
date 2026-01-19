@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { loadTemplates } from "@/lib/templateStore";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useLanguage } from "@/components/LanguageProvider";
+import { useOpenAIReady } from "@/lib/useOpenAIReady";
 
 function formatHMS(totalSeconds: number) {
   const hours = Math.floor(totalSeconds / 3600);
@@ -17,6 +17,39 @@ function formatMMSS(totalSeconds: number) {
   return `${minutes}`.padStart(2, "0") + ":" + `${seconds}`.padStart(2, "0");
 }
 
+function getMimeType() {
+  const candidates = ["audio/webm;codecs=opus", "audio/webm", "audio/mp4"];
+  return candidates.find((type) => MediaRecorder.isTypeSupported(type)) || "";
+}
+
+type TemplateOption = { id: string; name: string; body: string };
+
+const templateOptions: TemplateOption[] = [
+  {
+    id: "soap",
+    name: "SOAP",
+    body:
+      "SOAP Note\n\nSubjective:\n{{TRANSCRIPT}}\n\nObjective:\n- \n\nAssessment:\n- \n\nPlan:\n- \n\nSummary:\n{{SUMMARY}}\n",
+  },
+  {
+    id: "psych-progress",
+    name: "Psych Progress Note",
+    body:
+      "Psych Progress Note\n\nDate: {{DATE}}\n\nSession Summary:\n{{TRANSCRIPT}}\n\nAssessment:\n- \n\nPlan:\n- \n\nSummary:\n{{SUMMARY}}\n",
+  },
+  {
+    id: "kurzbericht",
+    name: "Kurzbericht",
+    body:
+      "Kurzbericht\n\nDatum: {{DATE}}\n\nKernaussagen:\n{{TRANSCRIPT}}\n\nKurzfazit:\n{{SUMMARY}}\n",
+  },
+  {
+    id: "custom",
+    name: "Custom",
+    body: "Custom Template\n\n{{TRANSCRIPT}}\n\nSummary:\n{{SUMMARY}}\n",
+  },
+];
+
 function fillTemplate(tpl: string, vars: Record<string, string>) {
   let out = tpl;
   for (const [k, v] of Object.entries(vars)) {
@@ -27,7 +60,7 @@ function fillTemplate(tpl: string, vars: Record<string, string>) {
 
 const copy = {
   de: {
-    title: "Neue Dokumentation",
+    title: "Aufnahmebereich",
     steps: {
       type: "Schritt 1: Dokumenttyp",
       mode: "Schritt 2: Modus",
@@ -58,27 +91,28 @@ const copy = {
       pasteLabel: "Notizen (Ton, Kontext, Wichtig)",
       uploadLabel: "Dokument hinzufügen (.txt, .pdf, .docx, .doc)",
       uploadNote: "Dateien werden nur für diese Sitzung verarbeitet und nicht gespeichert.",
-      placeholder: "Ton: ...\nKontext: ...\nWichtig: ...",
+      placeholder: "Describe tone, quality, importance, etc.",
     },
     recorder: {
       uploadTitle: "Upload",
+      uploadLabel: "Upload text file",
       attachmentsTitle: "Anhänge",
       attachmentsEmpty: "Keine Uploads",
-      toneLabel: "Ton",
-      tones: ["Professionell", "Neutral", "Dringend", "Freundlich"],
-      notesLabel: "Notizen",
-      templateLabel: "Vorlage",
-      outputTitle: "Entwurfsausgabe",
+      toneLabel: "Tone",
+      tones: ["Professional", "Neutral", "Urgent"],
+      notesLabel: "Notes",
+      templateLabel: "Template",
+      outputTitle: "Draft output",
       outputPlaceholder: "Ihr strukturierter Entwurf erscheint hier...",
       statusLabel: "Status",
       status: {
-        idle: "Bereit",
-        recording: "Aufnahme läuft",
-        paused: "Pausiert",
+        idle: "Ready",
+        recording: "Recording",
+        paused: "Paused",
         processing: "Verarbeitung...",
       },
-      timerLabel: "Aufnahmezeit",
-      avoidedLabel: "Schreibzeit gespart",
+      timerLabel: "Recording time",
+      avoidedLabel: "Time writing avoided",
       processingLabel: "Verarbeitung...",
     },
     transcript: {
@@ -99,7 +133,7 @@ const copy = {
     },
   },
   en: {
-    title: "New Documentation",
+    title: "Recording workspace",
     steps: {
       type: "Step 1: Document type",
       mode: "Step 2: Mode",
@@ -127,17 +161,18 @@ const copy = {
     },
     supplemental: {
       title: "Supplemental text & files",
-      pasteLabel: "Notes (tone, context, important)",
-      uploadLabel: "Add document (.txt, .pdf, .docx, .doc)",
+      pasteLabel: "Notes",
+      uploadLabel: "Upload text file",
       uploadNote: "Files are processed for this session only and are not stored.",
-      placeholder: "Tone: ...\nContext: ...\nImportant: ...",
+      placeholder: "Describe tone, quality, importance, etc.",
     },
     recorder: {
       uploadTitle: "Upload",
+      uploadLabel: "Upload text file",
       attachmentsTitle: "Attachments",
       attachmentsEmpty: "No uploads yet",
       toneLabel: "Tone",
-      tones: ["Professional", "Neutral", "Urgent", "Friendly"],
+      tones: ["Professional", "Neutral", "Urgent"],
       notesLabel: "Notes",
       templateLabel: "Template",
       outputTitle: "Draft output",
@@ -171,7 +206,7 @@ const copy = {
     },
   },
   it: {
-    title: "Nuova documentazione",
+    title: "Area di registrazione",
     steps: {
       type: "Fase 1: Tipo di documento",
       mode: "Fase 2: Modalità",
@@ -199,20 +234,21 @@ const copy = {
     },
     supplemental: {
       title: "Testo aggiuntivo e documenti",
-      pasteLabel: "Note (tono, contesto, importante)",
-      uploadLabel: "Aggiungi documento (.txt, .pdf, .docx, .doc)",
+      pasteLabel: "Note",
+      uploadLabel: "Carica file di testo",
       uploadNote: "I file vengono elaborati solo per questa sessione e non vengono salvati.",
-      placeholder: "Tono: ...\nContesto: ...\nImportante: ...",
+      placeholder: "Describe tone, quality, importance, etc.",
     },
     recorder: {
       uploadTitle: "Upload",
+      uploadLabel: "Carica file di testo",
       attachmentsTitle: "Allegati",
       attachmentsEmpty: "Nessun upload",
-      toneLabel: "Tono",
-      tones: ["Professionale", "Neutro", "Urgente", "Amichevole"],
-      notesLabel: "Note",
-      templateLabel: "Modello",
-      outputTitle: "Bozza",
+      toneLabel: "Tone",
+      tones: ["Professional", "Neutral", "Urgent"],
+      notesLabel: "Notes",
+      templateLabel: "Template",
+      outputTitle: "Draft output",
       outputPlaceholder: "La bozza strutturata apparira qui...",
       statusLabel: "Stato",
       status: {
@@ -222,7 +258,7 @@ const copy = {
         processing: "Elaborazione...",
       },
       timerLabel: "Tempo di registrazione",
-      avoidedLabel: "Tempo di scrittura evitato",
+      avoidedLabel: "Time writing avoided",
       processingLabel: "Elaborazione...",
     },
     transcript: {
@@ -243,7 +279,7 @@ const copy = {
     },
   },
   fr: {
-    title: "Nouvelle documentation",
+    title: "Zone d'enregistrement",
     steps: {
       type: "Étape 1 : Type de document",
       mode: "Étape 2 : Mode",
@@ -271,20 +307,21 @@ const copy = {
     },
     supplemental: {
       title: "Texte complémentaire & documents",
-      pasteLabel: "Notes (ton, contexte, important)",
-      uploadLabel: "Ajouter un document (.txt, .pdf, .docx, .doc)",
+      pasteLabel: "Notes",
+      uploadLabel: "Televerser un fichier texte",
       uploadNote: "Les fichiers sont traités uniquement pour cette session et ne sont pas stockés.",
-      placeholder: "Ton: ...\nContexte: ...\nImportant: ...",
+      placeholder: "Describe tone, quality, importance, etc.",
     },
     recorder: {
       uploadTitle: "Upload",
+      uploadLabel: "Televerser un fichier texte",
       attachmentsTitle: "Pieces jointes",
       attachmentsEmpty: "Aucun upload",
-      toneLabel: "Ton",
-      tones: ["Professionnel", "Neutre", "Urgent", "Amical"],
+      toneLabel: "Tone",
+      tones: ["Professional", "Neutral", "Urgent"],
       notesLabel: "Notes",
-      templateLabel: "Modele",
-      outputTitle: "Brouillon",
+      templateLabel: "Template",
+      outputTitle: "Draft output",
       outputPlaceholder: "Votre brouillon structure apparaitra ici...",
       statusLabel: "Statut",
       status: {
@@ -294,7 +331,7 @@ const copy = {
         processing: "Traitement...",
       },
       timerLabel: "Temps d'enregistrement",
-      avoidedLabel: "Temps d'ecriture evite",
+      avoidedLabel: "Time writing avoided",
       processingLabel: "Traitement...",
     },
     transcript: {
@@ -319,10 +356,9 @@ const copy = {
 export default function NewDocumentationPage() {
   const { language } = useLanguage();
   const t = copy[language];
-  const templates = useMemo(() => loadTemplates(), []);
-  const [docType, setDocType] = useState(t.docTypes[0]);
+  const openAiReady = useOpenAIReady();
+  const templates = templateOptions;
   const [templateId, setTemplateId] = useState(templates[0]?.id ?? "");
-  const [mode, setMode] = useState<"dictation" | "upload">("dictation");
 
   const [status, setStatus] = useState(t.status.idle);
   const [partial, setPartial] = useState("");
@@ -337,14 +373,28 @@ export default function NewDocumentationPage() {
   const [outputText, setOutputText] = useState("");
   const [uploadedItems, setUploadedItems] = useState<{ name: string; type: string }[]>([]);
   const [uploadedText, setUploadedText] = useState("");
+  const [recError, setRecError] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
 
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const chunksRef = useRef<BlobPart[]>([]);
+  const recordingSecondsRef = useRef(0);
   useEffect(() => {
     setDocType(copy[language].docTypes[0]);
     setStatus(copy[language].status.idle);
     setTone(copy[language].recorder.tones[0]);
   }, [language]);
+
+  useEffect(() => {
+    return () => {
+      streamRef.current?.getTracks().forEach((track) => track.stop());
+      streamRef.current = null;
+      mediaRecorderRef.current = null;
+      chunksRef.current = [];
+    };
+  }, []);
 
   useEffect(() => {
     if (recState === "recording") {
@@ -361,6 +411,46 @@ export default function NewDocumentationPage() {
     }
     setStatus(t.status.idle);
   }, [recState, t]);
+
+  async function transcribeAudio(mimeType: string, seconds: number) {
+    try {
+      const blob = new Blob(chunksRef.current, { type: mimeType || "audio/webm" });
+      const file = new File([blob], "recording.webm", { type: blob.type });
+      const form = new FormData();
+      form.append("file", file);
+      form.append("language", language);
+
+      const res = await fetch("/api/transcribe", { method: "POST", body: form });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body?.error || `Transcription failed (${res.status})`);
+      }
+
+      const data = (await res.json()) as { text?: string };
+      const transcript = data.text?.trim() ?? "";
+      setFinalText(transcript);
+      setPartial("");
+
+      const draft = await sendToLLM({
+        transcript,
+        notes: supplementText.trim(),
+        uploads: uploadedText.trim(),
+      });
+
+      const addedAvoided = Math.round((seconds * 0.6) / 15) * 15;
+      setWritingAvoidedSeconds((prev) => prev + addedAvoided);
+      setOutputText(draft);
+      setRecState("done");
+    } catch (err: any) {
+      setRecError(err?.message ?? "Transcription failed.");
+      setRecState("done");
+    } finally {
+      streamRef.current?.getTracks().forEach((track) => track.stop());
+      streamRef.current = null;
+      mediaRecorderRef.current = null;
+      chunksRef.current = [];
+    }
+  }
 
   const selectedTemplate = templates.find((tpl) => tpl.id === templateId);
 
@@ -410,7 +500,11 @@ export default function NewDocumentationPage() {
   useEffect(() => {
     if (recState !== "recording") return;
     const timer = window.setInterval(() => {
-      setRecordingSeconds((prev) => prev + 1);
+      setRecordingSeconds((prev) => {
+        const next = prev + 1;
+        recordingSecondsRef.current = next;
+        return next;
+      });
     }, 1000);
     return () => window.clearInterval(timer);
   }, [recState]);
@@ -476,49 +570,66 @@ export default function NewDocumentationPage() {
     });
   }
 
-  function startRecording() {
+  async function startRecording() {
     if (recState === "processing") return;
+    if (openAiReady === false) {
+      setRecError("OpenAI API key missing.");
+      return;
+    }
+    setRecError(null);
     setRecordingSeconds(0);
+    recordingSecondsRef.current = 0;
     setRecState("recording");
     setOutputText("");
     setPartial("");
     setFinalText("");
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      streamRef.current = stream;
+      const mimeType = getMimeType();
+      const recorder = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
+      mediaRecorderRef.current = recorder;
+      chunksRef.current = [];
+
+      recorder.ondataavailable = (event) => {
+        if (event.data.size > 0) chunksRef.current.push(event.data);
+      };
+
+      recorder.onstop = () => {
+        setRecState("processing");
+        void transcribeAudio(mimeType, recordingSecondsRef.current);
+      };
+
+      recorder.start();
+    } catch (err: any) {
+      setRecError(err?.message ?? "Microphone permission required.");
+      setRecState("idle");
+    }
   }
 
   function pauseRecording() {
-    if (recState !== "recording") return;
+    const recorder = mediaRecorderRef.current;
+    if (recState !== "recording" || !recorder) return;
+    if (recorder.state !== "recording") return;
+    recorder.pause();
     setRecState("paused");
   }
 
   function resumeRecording() {
-    if (recState !== "paused") return;
+    const recorder = mediaRecorderRef.current;
+    if (recState !== "paused" || !recorder) return;
+    if (recorder.state !== "paused") return;
+    recorder.resume();
     setRecState("recording");
   }
 
   async function stopRecording() {
+    const recorder = mediaRecorderRef.current;
     if (recState !== "recording" && recState !== "paused") return;
+    if (!recorder) return;
     setRecState("processing");
-    const duration = recordingSeconds;
-    const transcript =
-      language === "de"
-        ? `Platzhalter-Transkript (${formatHMS(duration)})`
-        : language === "it"
-          ? `Trascritto segnaposto (${formatHMS(duration)})`
-          : language === "fr"
-            ? `Transcription placeholder (${formatHMS(duration)})`
-            : `Transcript placeholder (${formatHMS(duration)})`;
-
-    const draft = await sendToLLM({
-      transcript,
-      notes: supplementText.trim(),
-      uploads: uploadedText.trim(),
-    });
-
-    const addedAvoided = Math.round((duration * 0.6) / 15) * 15;
-    setWritingAvoidedSeconds((prev) => prev + addedAvoided);
-    setFinalText(transcript);
-    setOutputText(draft);
-    setRecState("done");
+    if (recorder.state !== "inactive") recorder.stop();
   }
 
   return (
@@ -573,7 +684,7 @@ export default function NewDocumentationPage() {
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">
-        <div className="rounded-[24px] border border-black/5 bg-[#fbf7f0] p-5 shadow-[0_12px_30px_-18px_rgba(15,23,42,0.45)]">
+        <div className="rounded-[28px] border border-black/5 bg-gradient-to-br from-[#fdfbf7] via-[#fbf5eb] to-[#f6efe4] p-6 shadow-[0_20px_40px_-28px_rgba(15,23,42,0.45)]">
           <div className="flex items-center justify-between">
             <h2 className="text-base font-semibold text-gray-900">{t.workspace.title}</h2>
             <span className="rounded-full border border-blue-100 bg-blue-50 px-3 py-1 text-[11px] font-semibold text-blue-700">
@@ -584,44 +695,56 @@ export default function NewDocumentationPage() {
           <p className="mt-2 text-xs text-gray-500">{t.workspace.note}</p>
 
           <div className="mt-4 grid gap-4 md:grid-cols-3 items-stretch" data-tour="supplemental">
-            <div className="h-full rounded-2xl border border-black/5 bg-white/90 p-4 shadow-sm flex flex-col">
-              <div className="flex items-center gap-2 text-xs font-semibold text-gray-700">
-                <span className="text-base">⬆️</span>
-                {t.recorder.uploadTitle}
+            <div className="flex flex-col gap-4">
+              <div className="h-full rounded-2xl border border-black/5 bg-white/95 p-4 shadow-sm">
+                <div className="flex flex-col items-center gap-3 text-center">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-50 text-2xl">
+                    📄
+                  </div>
+                  <div className="text-sm font-semibold text-gray-900">
+                    {t.recorder.uploadLabel}
+                  </div>
+                </div>
+                <div className="mt-4">
+                  <input
+                    className="w-full rounded-xl border bg-white px-3 py-2 text-xs"
+                    type="file"
+                    accept=".txt,.pdf,.docx,.doc,.md,.rtf"
+                    aria-label={t.recorder.uploadLabel}
+                    multiple
+                    onChange={(e) => {
+                      void handleFileUpload(e.target.files);
+                      e.currentTarget.value = "";
+                    }}
+                    disabled={uploading}
+                  />
+                </div>
+                {uploading ? (
+                  <div className="mt-2 text-center text-[11px] text-blue-600">
+                    {t.recorder.processingLabel}
+                  </div>
+                ) : null}
+                {uploadError ? (
+                  <div className="mt-2 text-center text-[11px] text-red-600">{uploadError}</div>
+                ) : null}
               </div>
-              <div className="mt-3">
-                <input
-                  className="w-full rounded-xl border bg-white px-3 py-2 text-xs"
-                  type="file"
-                  accept=".txt,.pdf,.docx,.doc,.md,.rtf"
-                  aria-label={t.supplemental.uploadLabel}
-                  multiple
-                  onChange={(e) => {
-                    void handleFileUpload(e.target.files);
-                    e.currentTarget.value = "";
-                  }}
-                  disabled={uploading}
-                />
-              </div>
-              <div className="mt-3 text-[11px] text-gray-500">{t.supplemental.uploadNote}</div>
-              {uploading ? <div className="mt-2 text-[11px] text-blue-600">{t.recorder.processingLabel}</div> : null}
-              {uploadError ? <div className="mt-2 text-[11px] text-red-600">{uploadError}</div> : null}
-              <div className="mt-4 text-[11px] font-semibold text-gray-500">
-                {t.recorder.attachmentsTitle}
-              </div>
-              <div className="mt-2 flex flex-wrap gap-2">
-                {uploadedItems.length === 0 ? (
-                  <span className="text-[11px] text-gray-400">{t.recorder.attachmentsEmpty}</span>
-                ) : (
-                  uploadedItems.map((file, index) => (
-                    <span
-                      key={`${file.name}-${file.type}-${index}`}
-                      className="rounded-full border bg-white px-2 py-1 text-[11px] text-gray-600"
-                    >
-                      📄 {file.name}
-                    </span>
-                  ))
-                )}
+
+              <div className="h-full rounded-2xl border border-black/5 bg-white/95 p-4 shadow-sm">
+                <div className="text-xs font-semibold text-gray-700">{t.recorder.attachmentsTitle}</div>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {uploadedItems.length === 0 ? (
+                    <span className="text-[11px] text-gray-400">{t.recorder.attachmentsEmpty}</span>
+                  ) : (
+                    uploadedItems.map((file, index) => (
+                      <span
+                        key={`${file.name}-${file.type}-${index}`}
+                        className="rounded-full border bg-white px-2 py-1 text-[11px] text-gray-600"
+                      >
+                        📄 {file.name}
+                      </span>
+                    ))
+                  )}
+                </div>
               </div>
             </div>
 
@@ -696,6 +819,26 @@ export default function NewDocumentationPage() {
                 </div>
               </div>
 
+              <div className="mt-4 grid gap-3 md:grid-cols-[1fr_auto] items-center rounded-2xl border border-black/5 bg-white px-3 py-3">
+                <div className="rounded-xl border border-dashed border-blue-100 bg-blue-50/40 px-3 py-4">
+                  <svg viewBox="0 0 520 80" className="h-12 w-full">
+                    <path
+                      d="M0 40 L20 40 L30 20 L40 60 L50 30 L60 50 L70 10 L80 55 L90 35 L100 40 L120 40 L130 20 L140 60 L150 30 L160 50 L170 10 L180 55 L190 35 L200 40 L220 40 L230 20 L240 60 L250 30 L260 50 L270 10 L280 55 L290 35 L300 40 L320 40 L330 20 L340 60 L350 30 L360 50 L370 10 L380 55 L390 35 L400 40 L420 40 L430 20 L440 60 L450 30 L460 50 L470 10 L480 55 L490 35 L520 40"
+                      fill="none"
+                      stroke="#14b8a6"
+                      strokeWidth="3"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </div>
+                <div className="relative h-24 w-24 rounded-[28px] bg-gradient-to-b from-blue-500 via-blue-600 to-blue-700 shadow-lg">
+                  <div className="absolute inset-x-0 top-4 mx-auto h-10 w-10 rounded-full bg-blue-300/60" />
+                  <div className="absolute inset-x-0 top-8 mx-auto h-8 w-8 rounded-full bg-red-400 shadow-[0_6px_14px_rgba(248,113,113,0.45)]" />
+                  <div className="absolute inset-x-0 bottom-2 mx-auto h-3 w-10 rounded-full bg-blue-900/60" />
+                </div>
+              </div>
+
               <div className="mt-3 flex items-center gap-2" data-tour="rec-button">
                 {(recState === "idle" || recState === "done") && (
                   <button
@@ -703,7 +846,7 @@ export default function NewDocumentationPage() {
                     className="flex h-10 w-10 items-center justify-center rounded-full border bg-white text-lg hover:border-gray-400 disabled:opacity-40"
                     onClick={startRecording}
                     aria-label="Start recording"
-                    disabled={recState === "processing"}
+                    disabled={recState === "processing" || openAiReady === false}
                   >
                     🔴
                   </button>
@@ -715,7 +858,7 @@ export default function NewDocumentationPage() {
                       className="flex h-10 w-10 items-center justify-center rounded-full border bg-white text-lg hover:border-gray-400 disabled:opacity-40"
                       onClick={pauseRecording}
                       aria-label="Pause recording"
-                      disabled={recState === "processing"}
+                      disabled={recState === "processing" || openAiReady === false}
                     >
                       ⏸️
                     </button>
@@ -724,7 +867,7 @@ export default function NewDocumentationPage() {
                       className="flex h-10 w-10 items-center justify-center rounded-full border bg-white text-lg hover:border-gray-400 disabled:opacity-40"
                       onClick={stopRecording}
                       aria-label="Stop recording"
-                      disabled={recState === "processing"}
+                      disabled={recState === "processing" || openAiReady === false}
                     >
                       ⏹️
                     </button>
@@ -737,7 +880,7 @@ export default function NewDocumentationPage() {
                       className="flex h-10 w-10 items-center justify-center rounded-full border bg-white text-lg hover:border-gray-400 disabled:opacity-40"
                       onClick={resumeRecording}
                       aria-label="Resume recording"
-                      disabled={recState === "processing"}
+                      disabled={recState === "processing" || openAiReady === false}
                     >
                       🔴
                     </button>
@@ -746,7 +889,7 @@ export default function NewDocumentationPage() {
                       className="flex h-10 w-10 items-center justify-center rounded-full border bg-white text-lg hover:border-gray-400 disabled:opacity-40"
                       onClick={stopRecording}
                       aria-label="Stop recording"
-                      disabled={recState === "processing"}
+                      disabled={recState === "processing" || openAiReady === false}
                     >
                       ⏹️
                     </button>
@@ -762,6 +905,16 @@ export default function NewDocumentationPage() {
                   {formatMMSS(writingAvoidedSeconds)}
                 </div>
               </div>
+
+              {recError ? (
+                <div className="mt-2 text-[11px] text-red-600">{recError}</div>
+              ) : null}
+              {openAiReady === false ? (
+                <div className="mt-2 text-[11px] text-gray-500">
+                  OpenAI API key missing. Add <span className="font-mono">OPENAI_API_KEY</span> to{" "}
+                  <span className="font-mono">.env.local</span>.
+                </div>
+              ) : null}
 
               <div className="mt-4 flex-1 flex flex-col">
                 <div className="text-[11px] font-semibold text-gray-600">
