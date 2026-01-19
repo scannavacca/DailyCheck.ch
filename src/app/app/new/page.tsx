@@ -594,14 +594,43 @@ export default function NewDocumentationPage() {
     return base.includes("{{SUMMARY}}") ? draft : `${draft}\n\n${summary}`;
   }
 
-  function sendToLLM(payload: { transcript: string; notes: string; uploads: string }) {
-    return new Promise<string>((resolve) => {
-      const delay = 1000 + Math.random() * 700;
-      window.setTimeout(() => {
-        resolve(buildDraft(payload));
-      }, delay);
+  async function sendToLLM(payload: { transcript: string; notes: string; uploads: string }) {
+    const templateBody = selectedTemplate?.body ?? "";
+    if (!templateBody) {
+      return buildDraft(payload);
+    }
+
+    const supplemental = [payload.notes, payload.uploads].filter(Boolean).join("\n\n");
+
+    const res = await fetch("/api/generate-draft", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        template: templateBody,
+        transcript: payload.transcript,
+        supplemental,
+        language,
+      }),
     });
+
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      const message = body?.detail ? `${body?.error || "Draft failed"}: ${body.detail}` : body?.error;
+      throw new Error(message || `Draft failed (${res.status})`);
+    }
+
+    const data = (await res.json()) as { draft?: string };
+    return data.draft?.trim() || buildDraft(payload);
   }
+
+  useEffect(() => {
+    if (recState === "processing") return;
+    const transcript = "";
+    const notes = supplementText.trim();
+    const uploads = uploadedText.trim();
+    if (!notes && !uploads) return;
+    setOutputText(buildDraft({ transcript, notes, uploads }));
+  }, [supplementText, uploadedText, recState, templateId, language]);
 
   async function startRecording() {
     if (recState === "processing") return;
@@ -617,7 +646,9 @@ export default function NewDocumentationPage() {
     setRecordingSeconds(0);
     recordingSecondsRef.current = 0;
     setRecState("recording");
-    setOutputText("");
+    setOutputText(
+      buildDraft({ transcript: "", notes: supplementText.trim(), uploads: uploadedText.trim() })
+    );
 
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });

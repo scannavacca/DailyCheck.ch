@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getDemoLoginRecords } from "@/lib/demoAuth";
 
-type TodoItem = { id: string; text: string; done: boolean };
+type TodoItem = { id: string; text: string; done: boolean; children?: TodoItem[] };
 type FinanceByMonth = Record<string, string>;
 
 const TODO_KEY = "webmaster_todos";
@@ -22,6 +22,7 @@ export default function WebmasterPage() {
   const router = useRouter();
   const [todos, setTodos] = useState<TodoItem[]>([]);
   const [newTodo, setNewTodo] = useState("");
+  const [dragId, setDragId] = useState<string | null>(null);
   const [finance, setFinance] = useState<FinanceByMonth>({});
   const [selectedMonth, setSelectedMonth] = useState("");
 
@@ -44,7 +45,14 @@ export default function WebmasterPage() {
     if (existing) {
       try {
         const parsed = JSON.parse(existing) as TodoItem[];
-        setTodos(parsed.map((item) => ({ done: false, ...item })));
+        const normalize = (items: TodoItem[]): TodoItem[] =>
+          items.map((item) => ({
+            done: false,
+            children: [],
+            ...item,
+            children: item.children ? normalize(item.children) : [],
+          }));
+        setTodos(normalize(parsed));
       } catch {
         setTodos([]);
       }
@@ -74,6 +82,46 @@ export default function WebmasterPage() {
   }, [finance]);
 
   const records = useMemo(() => getDemoLoginRecords(), []);
+  const removeTodoById = (items: TodoItem[], id: string): TodoItem[] =>
+    items
+      .filter((item) => item.id !== id)
+      .map((item) => ({
+        ...item,
+        children: item.children ? removeTodoById(item.children, id) : [],
+      }));
+
+  const findTodoById = (items: TodoItem[], id: string): TodoItem | null => {
+    for (const item of items) {
+      if (item.id === id) return item;
+      if (item.children?.length) {
+        const found = findTodoById(item.children, id);
+        if (found) return found;
+      }
+    }
+    return null;
+  };
+
+  const insertChildTodo = (items: TodoItem[], parentId: string, child: TodoItem): TodoItem[] =>
+    items.map((item) => {
+      if (item.id === parentId) {
+        const nextChildren = item.children ? [...item.children, child] : [child];
+        return { ...item, children: nextChildren };
+      }
+      if (item.children?.length) {
+        return { ...item, children: insertChildTodo(item.children, parentId, child) };
+      }
+      return item;
+    });
+
+  const handleDrop = (parentId: string) => {
+    if (!dragId || dragId === parentId) return;
+    const dragged = findTodoById(todos, dragId);
+    if (!dragged) return;
+    const removed = removeTodoById(todos, dragId);
+    const nested = insertChildTodo(removed, parentId, dragged);
+    setTodos(nested);
+    setDragId(null);
+  };
   const currentRevenue = selectedMonth ? finance[selectedMonth] ?? "" : "";
 
   return (
@@ -279,34 +327,101 @@ export default function WebmasterPage() {
           </div>
 
           {todos.map((item) => (
-            <div key={item.id} className="flex items-center gap-2 rounded-xl border px-3 py-2">
-              <input
-                type="checkbox"
-                checked={item.done}
-                onChange={(e) =>
-                  setTodos((prev) =>
-                    prev.map((todo) => (todo.id === item.id ? { ...todo, done: e.target.checked } : todo))
-                  )
-                }
-              />
-              <div className={`flex-1 text-sm ${item.done ? "text-gray-400" : "text-gray-900"}`}>
-                {item.text}
+            <div
+              key={item.id}
+              className="space-y-2"
+              draggable
+              onDragStart={() => setDragId(item.id)}
+              onDragEnd={() => setDragId(null)}
+            >
+              <div
+                className="flex items-center gap-2 rounded-xl border px-3 py-2"
+                onDragOver={(e) => e.preventDefault()}
+                onDrop={() => handleDrop(item.id)}
+              >
+                <input
+                  type="checkbox"
+                  checked={item.done}
+                  onChange={(e) =>
+                    setTodos((prev) =>
+                      prev.map((todo) =>
+                        todo.id === item.id ? { ...todo, done: e.target.checked } : todo
+                      )
+                    )
+                  }
+                />
+                <div className={`flex-1 text-sm ${item.done ? "text-gray-400" : "text-gray-900"}`}>
+                  {item.text}
+                </div>
+                <button
+                  className="rounded-lg border px-2 py-1 text-xs font-semibold hover:bg-gray-50"
+                  onClick={async () => {
+                    await navigator.clipboard.writeText(item.text);
+                  }}
+                >
+                  Copy
+                </button>
+                <button
+                  className="rounded-lg border px-2 py-1 text-xs font-semibold text-red-600 hover:bg-red-50"
+                  onClick={() => setTodos((prev) => removeTodoById(prev, item.id))}
+                  aria-label="Delete"
+                >
+                  X
+                </button>
               </div>
-              <button
-                className="rounded-lg border px-2 py-1 text-xs font-semibold hover:bg-gray-50"
-                onClick={async () => {
-                  await navigator.clipboard.writeText(item.text);
-                }}
-              >
-                Copy
-              </button>
-              <button
-                className="rounded-lg border px-2 py-1 text-xs font-semibold text-red-600 hover:bg-red-50"
-                onClick={() => setTodos((prev) => prev.filter((todo) => todo.id !== item.id))}
-                aria-label="Delete"
-              >
-                X
-              </button>
+              {item.children?.length ? (
+                <div className="space-y-2 pl-6">
+                  {item.children.map((child) => (
+                    <div
+                      key={child.id}
+                      className="flex items-center gap-2 rounded-xl border px-3 py-2"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={child.done}
+                        onChange={(e) =>
+                          setTodos((prev) =>
+                            prev.map((todo) =>
+                              todo.id === item.id
+                                ? {
+                                    ...todo,
+                                    children: (todo.children ?? []).map((entry) =>
+                                      entry.id === child.id
+                                        ? { ...entry, done: e.target.checked }
+                                        : entry
+                                    ),
+                                  }
+                                : todo
+                            )
+                          )
+                        }
+                      />
+                      <div
+                        className={`flex-1 text-sm ${
+                          child.done ? "text-gray-400" : "text-gray-900"
+                        }`}
+                      >
+                        {child.text}
+                      </div>
+                      <button
+                        className="rounded-lg border px-2 py-1 text-xs font-semibold hover:bg-gray-50"
+                        onClick={async () => {
+                          await navigator.clipboard.writeText(child.text);
+                        }}
+                      >
+                        Copy
+                      </button>
+                      <button
+                        className="rounded-lg border px-2 py-1 text-xs font-semibold text-red-600 hover:bg-red-50"
+                        onClick={() => setTodos((prev) => removeTodoById(prev, child.id))}
+                        aria-label="Delete"
+                      >
+                        X
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              ) : null}
             </div>
           ))}
         </div>

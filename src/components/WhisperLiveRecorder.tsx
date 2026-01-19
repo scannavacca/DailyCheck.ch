@@ -101,14 +101,6 @@ function PauseIcon() {
   );
 }
 
-function PlayIcon() {
-  return (
-    <svg className="h-4 w-4" viewBox="0 0 20 20" aria-hidden="true">
-      <polygon points="6,4 16,10 6,16" fill="#374151" />
-    </svg>
-  );
-}
-
 function StopIcon() {
   return <span className="h-3 w-3 rounded-sm bg-gray-700" aria-hidden="true" />;
 }
@@ -290,11 +282,11 @@ export function WhisperLiveRecorder(props: Props) {
           {`${elapsedSeconds % 60}`.padStart(2, "0")}
         </div>
         <div className="mt-2 flex items-center gap-2">
-          {!recording ? (
+          {!recording || paused ? (
             <button
               className="flex h-10 w-10 items-center justify-center rounded-full border bg-white hover:bg-gray-50 disabled:cursor-not-allowed disabled:border-gray-200 disabled:bg-gray-100"
-              onClick={start}
-              aria-label={t.start}
+              onClick={paused ? togglePause : start}
+              aria-label={paused ? t.resume : t.start}
               disabled={disabled}
             >
               <span className={`h-3 w-3 rounded-full ${disabled ? "bg-gray-400" : "bg-red-600"}`} />
@@ -304,9 +296,9 @@ export function WhisperLiveRecorder(props: Props) {
               <button
                 className="flex h-9 w-9 items-center justify-center rounded-full border bg-white hover:bg-gray-50"
                 onClick={togglePause}
-                aria-label={paused ? t.resume : t.pause}
+                aria-label={t.pause}
               >
-                {paused ? <PlayIcon /> : <PauseIcon />}
+                <PauseIcon />
               </button>
               <button
                 className="flex h-9 w-9 items-center justify-center rounded-full border bg-white hover:bg-gray-50"

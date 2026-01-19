@@ -12,6 +12,8 @@ type Copy = {
   intro: string;
   boundaries: string[];
   confirm: string;
+  guidanceShow: string;
+  guidanceHide: string;
   placeholderEnabled: string;
   placeholderDisabled: string;
   send: string;
@@ -31,6 +33,8 @@ const copyByLang: Record<string, Copy> = {
     ],
     confirm:
       "Ich bestätige: Dieser Chat ist nur für mein eigenes Wohlbefinden (nicht für Patientenversorgung).",
+    guidanceShow: "Hinweise anzeigen",
+    guidanceHide: "Hinweise ausblenden",
     placeholderEnabled: "Fragen zu Stress, Schlaf, Erholung, Gewohnheiten...",
     placeholderDisabled: "Bitte zuerst bestätigen",
     send: "Senden",
@@ -47,6 +51,8 @@ const copyByLang: Record<string, Copy> = {
       "No medication or diagnostic suggestions.",
     ],
     confirm: "I confirm this chat is only for my own wellbeing (not for patient care).",
+    guidanceShow: "Show guidance",
+    guidanceHide: "Hide guidance",
     placeholderEnabled: "Ask about stress, sleep, recovery, habits...",
     placeholderDisabled: "Please confirm first",
     send: "Send",
@@ -63,6 +69,8 @@ const copyByLang: Record<string, Copy> = {
       "Nessun suggerimento su farmaci o diagnosi.",
     ],
     confirm: "Confermo: questa chat e solo per il mio benessere (non per i pazienti).",
+    guidanceShow: "Mostra avvisi",
+    guidanceHide: "Nascondi avvisi",
     placeholderEnabled: "Chiedi di stress, sonno, recupero, abitudini...",
     placeholderDisabled: "Conferma prima",
     send: "Invia",
@@ -79,6 +87,8 @@ const copyByLang: Record<string, Copy> = {
       "Pas de suggestions de medicaments ou de diagnostics.",
     ],
     confirm: "Je confirme: ce chat est pour mon bien-etre (pas pour les patients).",
+    guidanceShow: "Afficher les infos",
+    guidanceHide: "Masquer les infos",
     placeholderEnabled: "Questions sur stress, sommeil, recuperation, habitudes...",
     placeholderDisabled: "Veuillez confirmer",
     send: "Envoyer",
@@ -94,6 +104,7 @@ export function WellbeingFloatingChat() {
 
   const [open, setOpen] = useState(false);
   const [accepted, setAccepted] = useState(false);
+  const [showGuidance, setShowGuidance] = useState(true);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -157,32 +168,58 @@ export function WellbeingFloatingChat() {
           <div className="flex h-full flex-col">
             <div className="flex items-center justify-between border-b px-4 py-3">
               <div className="text-sm font-semibold">{t.title}</div>
-              <button
-                className="rounded-full px-2 py-1 text-xs text-gray-600 hover:bg-gray-100"
-                onClick={() => setOpen(false)}
-                aria-label="Close chat"
-              >
-                Close
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  className="rounded-full px-2 py-1 text-[11px] text-gray-600 hover:bg-gray-100"
+                  onClick={() => setShowGuidance((prev) => !prev)}
+                  aria-label="Toggle guidance"
+                >
+                  {showGuidance ? t.guidanceHide : t.guidanceShow}
+                </button>
+                <button
+                  className="rounded-full px-2 py-1 text-xs text-gray-600 hover:bg-gray-100"
+                  onClick={() => setOpen(false)}
+                  aria-label="Close chat"
+                >
+                  Close
+                </button>
+              </div>
             </div>
 
-            <div className="px-4 py-2 text-[11px] text-gray-600">
-              <div>{t.temporaryNote}</div>
-              <ul className="mt-2 list-disc space-y-1 pl-4">
-                {t.boundaries.map((item) => (
-                  <li key={item}>{item}</li>
-                ))}
-              </ul>
-              <label className="mt-2 flex items-start gap-2">
-                <input
-                  type="checkbox"
-                  className="mt-0.5"
-                  checked={accepted}
-                  onChange={(e) => setAccepted(e.target.checked)}
-                />
-                <span>{t.confirm}</span>
-              </label>
-            </div>
+            {showGuidance ? (
+              <div className="px-4 py-2 text-[11px] text-gray-600">
+                <div>{t.temporaryNote}</div>
+                <ul className="mt-2 list-disc space-y-1 pl-4">
+                  {t.boundaries.map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
+                <label className="mt-2 flex items-start gap-2">
+                  <input
+                    type="checkbox"
+                    className="mt-0.5"
+                    checked={accepted}
+                    onChange={(e) => {
+                      const next = e.target.checked;
+                      setAccepted(next);
+                      if (next) setShowGuidance(false);
+                    }}
+                  />
+                  <span>{t.confirm}</span>
+                </label>
+              </div>
+            ) : (
+              <div className="px-4 py-2 text-[11px] text-gray-500">
+                <button
+                  className="inline-flex items-center gap-1 text-xs font-semibold text-gray-700 hover:text-gray-900"
+                  onClick={() => setShowGuidance(true)}
+                  aria-label="Show guidance"
+                >
+                  <span aria-hidden="true">▾</span>
+                  {t.guidanceShow}
+                </button>
+              </div>
+            )}
 
             <div className="flex-1 px-4">
               <div className="h-full overflow-y-auto rounded-xl border bg-gray-50 p-3">
