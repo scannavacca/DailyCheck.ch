@@ -14,6 +14,7 @@ type Props = {
   onStop?: () => void;
   onStateChange?: (state: { recording: boolean; paused: boolean; elapsedSeconds: number }) => void;
   variant?: "full" | "compact";
+  tourId?: string;
 };
 
 const copy = {
@@ -118,7 +119,16 @@ function getMimeType() {
 }
 
 export function WhisperLiveRecorder(props: Props) {
-  const { language, onPartial, onFinal, onStatus, onStop, onStateChange, variant = "full" } = props;
+  const {
+    language,
+    onPartial,
+    onFinal,
+    onStatus,
+    onStop,
+    onStateChange,
+    variant = "full",
+    tourId,
+  } = props;
   const { language: uiLanguage } = useLanguage();
   const t = copy[uiLanguage] ?? copy.en;
   const ready = useOpenAIReady();
@@ -270,7 +280,10 @@ export function WhisperLiveRecorder(props: Props) {
 
   if (variant === "compact") {
     return (
-      <div className="flex h-24 w-24 flex-col items-center justify-center rounded-xl border bg-white p-2 shadow-sm">
+      <div
+        className="flex h-24 w-24 flex-col items-center justify-center rounded-xl border bg-white p-2 shadow-sm"
+        data-tour={tourId}
+      >
         <div className="text-[10px] font-semibold uppercase text-gray-500">Rec</div>
         <div className="mt-1 text-[11px] font-semibold text-gray-700">
           {`${Math.floor(elapsedSeconds / 60)}`.padStart(2, "0")}:

@@ -27,6 +27,7 @@ const copy = {
       ctas: {
         primary: "Early Access",
         secondary: "Demo öffnen",
+        login: "Login / Sign in",
       },
       ltdNote: "LTD: einmaliges Early-Access-Angebot, wird nicht wiederholt.",
       disclaimer: "Nur Dokumentationsassistent. Kein Patientenportal. Kein Entscheidungsautomatismus.",
@@ -397,6 +398,7 @@ const copy = {
       ctas: {
         primary: "Early Access",
         secondary: "Open demo",
+        login: "Login / Sign in",
       },
       ltdNote: "LTD: one-time early access offer, not repeated.",
       disclaimer: "Documentation assistant only. Not a patient portal. No decision automation.",
@@ -683,6 +685,7 @@ const copy = {
       ctas: {
         primary: "Early Access",
         secondary: "Apri demo",
+        login: "Login / Sign in",
       },
       ltdNote: "LTD: offerta di early access una sola volta, non ripetuta.",
       disclaimer: "Solo assistente di documentazione. Non è un portale pazienti. Nessun automatismo decisionale.",
@@ -969,6 +972,7 @@ const copy = {
       ctas: {
         primary: "Early Access",
         secondary: "Ouvrir la démo",
+        login: "Login / Sign in",
       },
       ltdNote: "LTD : offre early access unique, non reconduite.",
       disclaimer: "Assistant de documentation uniquement. Pas de portail patient. Pas d'automatisation de décision.",
@@ -1324,8 +1328,11 @@ export default function HomePage() {
             <PrimaryButton href="/contact" className="h-14 px-6 text-base">
               {t.hero.ctas.primary}
             </PrimaryButton>
-            <SecondaryButton href="/login" className="h-14 px-6 text-base">
+            <SecondaryButton href="/demo-login" className="h-14 px-6 text-base">
               {t.hero.ctas.secondary}
+            </SecondaryButton>
+            <SecondaryButton href="/login" className="h-14 px-6 text-base">
+              {t.hero.ctas.login}
             </SecondaryButton>
           </div>
         </div>
@@ -1440,7 +1447,7 @@ export default function HomePage() {
               </p>
               <div className="flex flex-col gap-3 sm:flex-row">
                 <PrimaryButton href="/contact">{t.finalCta.primary}</PrimaryButton>
-                <SecondaryButton href="/login">{t.finalCta.secondary}</SecondaryButton>
+                <SecondaryButton href="/demo-login">{t.finalCta.secondary}</SecondaryButton>
               </div>
             </div>
 

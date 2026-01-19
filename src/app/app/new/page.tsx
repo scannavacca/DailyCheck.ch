@@ -433,7 +433,7 @@ export default function NewDocumentationPage() {
       <h1 className="text-2xl font-semibold">{t.title}</h1>
 
       <div className="rounded-2xl border bg-white p-4 shadow-sm">
-        <div className="grid gap-4 md:grid-cols-3">
+        <div className="grid gap-4 md:grid-cols-3" data-tour="doc-steps">
           <div>
             <label className="text-sm font-semibold">{t.steps.type}</label>
             <select
@@ -490,6 +490,7 @@ export default function NewDocumentationPage() {
                   model="small"
                   useVAD={true}
                   variant="compact"
+                  tourId="rec-button"
                   onStatus={(s) => setStatus(s as "Bereit." | "Idle." | "Inattivo." | "Inactif.")}
                   onStateChange={(state) => setRecording(state.recording)}
                   onPartial={(text) => {
@@ -517,7 +518,10 @@ export default function NewDocumentationPage() {
             </div>
           </div>
 
-          <div className="mt-3 rounded-xl border bg-gray-50 p-3 text-xs text-gray-700">
+          <div
+            className="mt-3 rounded-xl border bg-gray-50 p-3 text-xs text-gray-700"
+            data-tour="supplemental"
+          >
             <div className="text-xs font-semibold text-gray-600">{t.supplemental.title}</div>
             <div className="mt-3">
               <label className="text-[11px] font-semibold text-gray-600">{t.supplemental.uploadLabel}</label>

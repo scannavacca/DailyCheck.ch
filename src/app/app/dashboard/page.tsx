@@ -1,15 +1,17 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { useLanguage } from "@/components/LanguageProvider";
+import { getDemoFirstName } from "@/lib/demoAuth";
 
 const copy = {
   de: {
     title: "Dashboard",
     welcomeLabel: "Willkommen",
-    welcomeName: "Dr. [Name]",
-    welcomeBody:
-      "Hier finden Sie Diktat, Vorlagen, ICD-10 Kategorien und Checklisten fuer eine strukturierte Dokumentation.",
+    welcomeTitle: "Willkommen im Dashboard",
+    welcomeFallback: "Tester",
+    welcomeNote: "Sie sind eine:r der wenigen vorselektierten Tester:innen.",
     startTitle: "Start",
     startBody: "Neue Diktation erstellen oder Audio hochladen.",
     newDictation: "Neue Diktation",
@@ -23,9 +25,9 @@ const copy = {
   en: {
     title: "Dashboard",
     welcomeLabel: "Welcome",
-    welcomeName: "Dr. [Name]",
-    welcomeBody:
-      "This workspace includes dictation, templates, ICD-10 categories, and checklists for structured documentation.",
+    welcomeTitle: "Welcome to the Dashboard",
+    welcomeFallback: "Tester",
+    welcomeNote: "You are one of the few preselected tester users.",
     startTitle: "Start",
     startBody: "Create a new dictation or upload audio.",
     newDictation: "New dictation",
@@ -38,10 +40,10 @@ const copy = {
   },
   it: {
     title: "Dashboard",
-    welcomeLabel: "Welcome",
-    welcomeName: "Dr. [Nome]",
-    welcomeBody:
-      "Qui trovi dettatura, modelli, categorie ICD-10 e checklist per una documentazione strutturata.",
+    welcomeLabel: "Benvenuto",
+    welcomeTitle: "Benvenuto nella dashboard",
+    welcomeFallback: "Tester",
+    welcomeNote: "Sei uno dei pochi tester preselezionati.",
     startTitle: "Inizia",
     startBody: "Crea una nuova dettatura o carica audio.",
     newDictation: "Nuova dettatura",
@@ -54,10 +56,10 @@ const copy = {
   },
   fr: {
     title: "Tableau de bord",
-    welcomeLabel: "Welcome",
-    welcomeName: "Dr. [Nom]",
-    welcomeBody:
-      "Cet espace propose la dictee, les modeles, les categories ICD-10 et des checklists pour documenter.",
+    welcomeLabel: "Bienvenue",
+    welcomeTitle: "Bienvenue sur le tableau de bord",
+    welcomeFallback: "Tester",
+    welcomeNote: "Vous faites partie d'un petit groupe de testeurs preselectionnes.",
     startTitle: "Demarrer",
     startBody: "Creez une nouvelle dictee ou importez un audio.",
     newDictation: "Nouvelle dictee",
@@ -73,6 +75,11 @@ const copy = {
 export default function DashboardPage() {
   const { language } = useLanguage();
   const t = copy[language];
+  const [firstName, setFirstName] = useState<string | null>(null);
+
+  useEffect(() => {
+    setFirstName(getDemoFirstName());
+  }, []);
 
   return (
     <div className="space-y-4">
@@ -80,8 +87,10 @@ export default function DashboardPage() {
 
       <div className="rounded-2xl border bg-white p-6 shadow-sm">
         <div className="text-xs font-semibold uppercase text-gray-500">{t.welcomeLabel}</div>
-        <div className="mt-1 text-lg font-semibold">{t.welcomeName}</div>
-        <p className="mt-2 text-sm text-gray-700">{t.welcomeBody}</p>
+        <div className="mt-1 text-lg font-semibold">
+          {firstName ? `${t.welcomeTitle} (${firstName})` : `${t.welcomeTitle} (${t.welcomeFallback})`}
+        </div>
+        <p className="mt-2 text-sm text-gray-700">{t.welcomeNote}</p>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">

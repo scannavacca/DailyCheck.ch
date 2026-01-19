@@ -6,6 +6,7 @@ import { isLoggedIn, logoutDemo } from "@/lib/demoAuth";
 import { useRouter } from "next/navigation";
 import { useLanguage } from "@/components/LanguageProvider";
 import { WellbeingFloatingChat } from "@/components/WellbeingFloatingChat";
+import { AppTutorial } from "@/components/AppTutorial";
 
 const copy = {
   de: {
@@ -67,17 +68,27 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           <div className="text-xs font-semibold uppercase tracking-[0.25em] text-gray-500">
             {t.title}
           </div>
-          <nav className="flex flex-wrap gap-4 text-base font-medium text-gray-800">
-            <Link className="hover:underline" href="/app/new">
+          <nav
+            className="flex flex-wrap gap-4 text-base font-medium text-gray-800"
+            data-tour="dashboard-menu"
+          >
+            <Link
+              className="hover:underline"
+              href="/app/new"
+              data-tour="nav-new-doc"
+              onClick={() => {
+                window.dispatchEvent(new CustomEvent("tour-advance", { detail: "new-doc" }));
+              }}
+            >
               {t.newDoc}
             </Link>
-            <Link className="hover:underline" href="/app/templates">
+            <Link className="hover:underline" href="/app/templates" data-tour="nav-templates">
               {t.templates}
             </Link>
-            <Link className="hover:underline" href="/app/icd10">
+            <Link className="hover:underline" href="/app/icd10" data-tour="nav-icd10">
               {t.icd10}
             </Link>
-            <Link className="hover:underline" href="/app/checklists">
+            <Link className="hover:underline" href="/app/checklists" data-tour="nav-checklists">
               {t.checklists}
             </Link>
             <Link className="hover:underline" href="/app/settings">
@@ -98,6 +109,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
       {children}
       <WellbeingFloatingChat />
+      <AppTutorial />
     </div>
   );
 }

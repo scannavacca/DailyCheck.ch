@@ -233,6 +233,7 @@ export function WellbeingFloatingChat() {
         className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-600 text-white shadow-lg hover:bg-blue-700"
         onClick={() => setOpen((v) => !v)}
         aria-label="Open wellbeing chat"
+        data-tour="chatbot-button"
       >
         <span className="text-2xl leading-none">+</span>
       </button>
