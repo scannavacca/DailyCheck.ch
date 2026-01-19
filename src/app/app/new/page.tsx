@@ -11,15 +11,34 @@ function formatHMS(totalSeconds: number) {
   return `${hours}`.padStart(2, "0") + ":" + `${minutes}`.padStart(2, "0") + ":" + `${seconds}`.padStart(2, "0");
 }
 
-function formatMMSS(totalSeconds: number) {
-  const minutes = Math.floor(totalSeconds / 60);
-  const seconds = totalSeconds % 60;
-  return `${minutes}`.padStart(2, "0") + ":" + `${seconds}`.padStart(2, "0");
+function getMimeType() {
+  const candidates = ["audio/webm;codecs=opus", "audio/webm", "audio/mp4;codecs=mp4a.40.2", "audio/mp4"];
+  return candidates.find((type) => MediaRecorder.isTypeSupported(type)) || "";
 }
 
-function getMimeType() {
-  const candidates = ["audio/webm;codecs=opus", "audio/webm", "audio/mp4"];
-  return candidates.find((type) => MediaRecorder.isTypeSupported(type)) || "";
+function getFileName(mimeType: string) {
+  if (mimeType.includes("mp4")) return "recording.m4a";
+  return "recording.webm";
+}
+
+const AVOIDED_WEEK_KEY = "weekly_avoided_week";
+const AVOIDED_SECONDS_KEY = "weekly_avoided_seconds";
+const BASELINE_SECONDS = 15 * 60;
+const EDIT_BUFFER_SECONDS = 5 * 60;
+
+function getWeekStartISO(date: Date) {
+  const d = new Date(date);
+  const day = d.getDay();
+  const diff = day === 0 ? -6 : 1 - day;
+  d.setDate(d.getDate() + diff);
+  d.setHours(0, 0, 0, 0);
+  return d.toISOString().slice(0, 10);
+}
+
+function formatHHMM(totalSeconds: number) {
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  return `${hours}`.padStart(2, "0") + ":" + `${minutes}`.padStart(2, "0");
 }
 
 type TemplateOption = { id: string; name: string; body: string };
@@ -103,7 +122,7 @@ const copy = {
       notesLabel: "Notes",
       templateLabel: "Template",
       outputTitle: "Draft output",
-      outputPlaceholder: "Ihr strukturierter Entwurf erscheint hier...",
+      outputPlaceholder: "Your structured draft will appear here...",
       statusLabel: "Status",
       status: {
         idle: "Ready",
@@ -249,7 +268,7 @@ const copy = {
       notesLabel: "Notes",
       templateLabel: "Template",
       outputTitle: "Draft output",
-      outputPlaceholder: "La bozza strutturata apparira qui...",
+      outputPlaceholder: "Your structured draft will appear here...",
       statusLabel: "Stato",
       status: {
         idle: "Pronto",
@@ -322,7 +341,7 @@ const copy = {
       notesLabel: "Notes",
       templateLabel: "Template",
       outputTitle: "Draft output",
-      outputPlaceholder: "Votre brouillon structure apparaitra ici...",
+      outputPlaceholder: "Your structured draft will appear here...",
       statusLabel: "Statut",
       status: {
         idle: "Pret",
@@ -360,9 +379,6 @@ export default function NewDocumentationPage() {
   const templates = templateOptions;
   const [templateId, setTemplateId] = useState(templates[0]?.id ?? "");
 
-  const [status, setStatus] = useState(t.status.idle);
-  const [partial, setPartial] = useState("");
-  const [finalText, setFinalText] = useState("");
   const [supplementText, setSupplementText] = useState("");
   const [tone, setTone] = useState(t.recorder.tones[0]);
   const [recState, setRecState] = useState<"idle" | "recording" | "paused" | "processing" | "done">(
@@ -381,11 +397,38 @@ export default function NewDocumentationPage() {
   const streamRef = useRef<MediaStream | null>(null);
   const chunksRef = useRef<BlobPart[]>([]);
   const recordingSecondsRef = useRef(0);
+
+  const waveBars = useMemo(() => Array.from({ length: 18 }, (_, i) => i), []);
+  const waveActive = recState === "recording";
+  const toneStyles: Record<string, string> = {
+    Professional: "bg-blue-600 text-white",
+    Neutral: "bg-slate-200 text-slate-700",
+    Urgent: "bg-orange-500 text-white",
+  };
   useEffect(() => {
-    setDocType(copy[language].docTypes[0]);
-    setStatus(copy[language].status.idle);
     setTone(copy[language].recorder.tones[0]);
   }, [language]);
+
+  useEffect(() => {
+    const weekStart = getWeekStartISO(new Date());
+    const storedWeek = localStorage.getItem(AVOIDED_WEEK_KEY);
+    const storedSeconds = Number(localStorage.getItem(AVOIDED_SECONDS_KEY) ?? "0");
+
+    if (storedWeek !== weekStart) {
+      localStorage.setItem(AVOIDED_WEEK_KEY, weekStart);
+      localStorage.setItem(AVOIDED_SECONDS_KEY, "0");
+      setWritingAvoidedSeconds(0);
+      return;
+    }
+
+    setWritingAvoidedSeconds(Number.isFinite(storedSeconds) ? storedSeconds : 0);
+  }, []);
+
+  useEffect(() => {
+    const weekStart = getWeekStartISO(new Date());
+    localStorage.setItem(AVOIDED_WEEK_KEY, weekStart);
+    localStorage.setItem(AVOIDED_SECONDS_KEY, String(writingAvoidedSeconds));
+  }, [writingAvoidedSeconds]);
 
   useEffect(() => {
     return () => {
@@ -396,26 +439,15 @@ export default function NewDocumentationPage() {
     };
   }, []);
 
-  useEffect(() => {
-    if (recState === "recording") {
-      setStatus(t.recorder.status.recording);
-      return;
-    }
-    if (recState === "paused") {
-      setStatus(t.recorder.status.paused);
-      return;
-    }
-    if (recState === "processing") {
-      setStatus(t.recorder.status.processing);
-      return;
-    }
-    setStatus(t.status.idle);
-  }, [recState, t]);
-
   async function transcribeAudio(mimeType: string, seconds: number) {
     try {
       const blob = new Blob(chunksRef.current, { type: mimeType || "audio/webm" });
-      const file = new File([blob], "recording.webm", { type: blob.type });
+      if (blob.size < 1024) {
+        setRecError("No audio captured. Try again.");
+        setRecState("done");
+        return;
+      }
+      const file = new File([blob], getFileName(blob.type), { type: blob.type });
       const form = new FormData();
       form.append("file", file);
       form.append("language", language);
@@ -423,22 +455,23 @@ export default function NewDocumentationPage() {
       const res = await fetch("/api/transcribe", { method: "POST", body: form });
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
-        throw new Error(body?.error || `Transcription failed (${res.status})`);
+        const message = body?.detail
+          ? `${body?.error || "Transcription failed"}: ${body.detail}`
+          : body?.error;
+        throw new Error(message || `Transcription failed (${res.status})`);
       }
 
       const data = (await res.json()) as { text?: string };
       const transcript = data.text?.trim() ?? "";
-      setFinalText(transcript);
-      setPartial("");
-
       const draft = await sendToLLM({
         transcript,
         notes: supplementText.trim(),
         uploads: uploadedText.trim(),
       });
 
-      const addedAvoided = Math.round((seconds * 0.6) / 15) * 15;
-      setWritingAvoidedSeconds((prev) => prev + addedAvoided);
+      const actual = seconds + EDIT_BUFFER_SECONDS;
+      const avoided = Math.max(0, BASELINE_SECONDS - actual);
+      setWritingAvoidedSeconds((prev) => prev + avoided);
       setOutputText(draft);
       setRecState("done");
     } catch (err: any) {
@@ -576,13 +609,15 @@ export default function NewDocumentationPage() {
       setRecError("OpenAI API key missing.");
       return;
     }
+    if (typeof MediaRecorder === "undefined") {
+      setRecError("Recording is not supported in this browser.");
+      return;
+    }
     setRecError(null);
     setRecordingSeconds(0);
     recordingSecondsRef.current = 0;
     setRecState("recording");
     setOutputText("");
-    setPartial("");
-    setFinalText("");
 
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -601,7 +636,7 @@ export default function NewDocumentationPage() {
         void transcribeAudio(mimeType, recordingSecondsRef.current);
       };
 
-      recorder.start();
+      recorder.start(500);
     } catch (err: any) {
       setRecError(err?.message ?? "Microphone permission required.");
       setRecState("idle");
@@ -629,137 +664,90 @@ export default function NewDocumentationPage() {
     if (recState !== "recording" && recState !== "paused") return;
     if (!recorder) return;
     setRecState("processing");
+    if (recorder.state === "recording") {
+      recorder.requestData();
+    }
     if (recorder.state !== "inactive") recorder.stop();
   }
 
   return (
-    <div className="space-y-4">
-      <h1 className="text-2xl font-semibold">{t.title}</h1>
+    <div className="space-y-6">
+      <h1 className="text-2xl font-semibold text-gray-900">{t.title}</h1>
 
-      <div className="rounded-2xl border bg-white p-4 shadow-sm">
-        <div className="grid gap-4 md:grid-cols-3" data-tour="doc-steps">
-          <div>
-            <label className="text-sm font-semibold">{t.steps.type}</label>
-            <select
-              className="mt-1 w-full rounded-xl border px-3 py-2 text-sm"
-              value={docType}
-              onChange={(e) => setDocType(e.target.value as typeof docType)}
-            >
-              {t.docTypes.map((type) => (
-                <option key={type}>{type}</option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label className="text-sm font-semibold">{t.steps.mode}</label>
-            <select
-              className="mt-1 w-full rounded-xl border px-3 py-2 text-sm"
-              value={mode}
-              onChange={(e) => setMode(e.target.value as "dictation" | "upload")}
-            >
-              <option value="dictation">{t.modeOptions.dictation}</option>
-              <option value="upload">{t.modeOptions.upload}</option>
-            </select>
-            <p className="mt-1 text-xs text-gray-500">{t.modeNote}</p>
-          </div>
-
-          <div>
-            <label className="text-sm font-semibold">{t.steps.template}</label>
-            <select
-              className="mt-1 w-full rounded-xl border px-3 py-2 text-sm"
-              value={templateId}
-              onChange={(e) => setTemplateId(e.target.value)}
-            >
-              {templates.map((tpl) => (
-                <option key={tpl.id} value={tpl.id}>
-                  {tpl.name}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-
-        <div className="mt-4 rounded-xl border bg-gray-50 p-3 text-xs text-gray-600">{t.banner}</div>
-      </div>
-
-      <div className="grid gap-4 md:grid-cols-2">
-        <div className="rounded-[28px] border border-black/5 bg-gradient-to-br from-[#fdfbf7] via-[#fbf5eb] to-[#f6efe4] p-6 shadow-[0_20px_40px_-28px_rgba(15,23,42,0.45)]">
-          <div className="flex items-center justify-between">
-            <h2 className="text-base font-semibold text-gray-900">{t.workspace.title}</h2>
-            <span className="rounded-full border border-blue-100 bg-blue-50 px-3 py-1 text-[11px] font-semibold text-blue-700">
-              {docType}
-            </span>
-          </div>
-
-          <p className="mt-2 text-xs text-gray-500">{t.workspace.note}</p>
-
-          <div className="mt-4 grid gap-4 md:grid-cols-3 items-stretch" data-tour="supplemental">
-            <div className="flex flex-col gap-4">
-              <div className="h-full rounded-2xl border border-black/5 bg-white/95 p-4 shadow-sm">
-                <div className="flex flex-col items-center gap-3 text-center">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-50 text-2xl">
-                    📄
-                  </div>
-                  <div className="text-sm font-semibold text-gray-900">
-                    {t.recorder.uploadLabel}
-                  </div>
-                </div>
-                <div className="mt-4">
-                  <input
-                    className="w-full rounded-xl border bg-white px-3 py-2 text-xs"
-                    type="file"
-                    accept=".txt,.pdf,.docx,.doc,.md,.rtf"
-                    aria-label={t.recorder.uploadLabel}
-                    multiple
-                    onChange={(e) => {
-                      void handleFileUpload(e.target.files);
-                      e.currentTarget.value = "";
-                    }}
-                    disabled={uploading}
+      <div className="rounded-[32px] border border-black/5 bg-gradient-to-br from-[#fdfcf8] via-[#f7f1e7] to-[#f3ece2] p-6 shadow-[0_28px_60px_-40px_rgba(15,23,42,0.5)]">
+        <div className="grid gap-6 lg:grid-cols-[1fr_2.35fr]">
+          <div className="space-y-4">
+            <div className="rounded-[28px] border border-black/10 bg-white/90 p-6 shadow-[0_12px_24px_-18px_rgba(15,23,42,0.35)]">
+              <label className="relative flex cursor-pointer flex-col items-center gap-3 text-center">
+                <input
+                  className="sr-only"
+                  type="file"
+                  accept=".txt,.pdf,.docx,.doc"
+                  multiple
+                  aria-label={t.recorder.uploadLabel}
+                  onChange={(e) => {
+                    void handleFileUpload(e.target.files);
+                    e.currentTarget.value = "";
+                  }}
+                  disabled={uploading}
+                />
+                <svg viewBox="0 0 64 64" className="h-12 w-12 text-blue-500">
+                  <path
+                    d="M18 8h20l8 8v32H18z"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
                   />
+                  <path d="M38 8v12h12" fill="none" stroke="currentColor" strokeWidth="2" />
+                  <path d="M32 42V24" fill="none" stroke="currentColor" strokeWidth="2" />
+                  <path d="M24 32l8-8 8 8" fill="none" stroke="currentColor" strokeWidth="2" />
+                </svg>
+                <span className="text-sm font-semibold text-gray-900">{t.recorder.uploadLabel}</span>
+              </label>
+              {uploading ? (
+                <div className="mt-3 text-center text-[11px] text-blue-600">
+                  {t.recorder.processingLabel}
                 </div>
-                {uploading ? (
-                  <div className="mt-2 text-center text-[11px] text-blue-600">
-                    {t.recorder.processingLabel}
-                  </div>
-                ) : null}
-                {uploadError ? (
-                  <div className="mt-2 text-center text-[11px] text-red-600">{uploadError}</div>
-                ) : null}
-              </div>
-
-              <div className="h-full rounded-2xl border border-black/5 bg-white/95 p-4 shadow-sm">
-                <div className="text-xs font-semibold text-gray-700">{t.recorder.attachmentsTitle}</div>
-                <div className="mt-2 flex flex-wrap gap-2">
-                  {uploadedItems.length === 0 ? (
-                    <span className="text-[11px] text-gray-400">{t.recorder.attachmentsEmpty}</span>
-                  ) : (
-                    uploadedItems.map((file, index) => (
-                      <span
-                        key={`${file.name}-${file.type}-${index}`}
-                        className="rounded-full border bg-white px-2 py-1 text-[11px] text-gray-600"
-                      >
-                        📄 {file.name}
-                      </span>
-                    ))
-                  )}
-                </div>
-              </div>
+              ) : null}
+              {uploadError ? (
+                <div className="mt-3 text-center text-[11px] text-red-600">{uploadError}</div>
+              ) : null}
             </div>
 
-            <div className="h-full rounded-2xl border border-black/5 bg-white/90 p-4 shadow-sm flex flex-col">
-              <div className="text-xs font-semibold text-gray-700">{t.recorder.toneLabel}</div>
-              <div className="mt-2 flex flex-wrap gap-2">
+            <div className="rounded-[28px] border border-black/10 bg-white/90 p-4 shadow-[0_12px_24px_-18px_rgba(15,23,42,0.35)]">
+              <div className="text-[11px] font-semibold uppercase tracking-[0.2em] text-gray-400">
+                {t.recorder.attachmentsTitle}
+              </div>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {uploadedItems.length === 0 ? (
+                  <span className="text-[11px] text-gray-400">{t.recorder.attachmentsEmpty}</span>
+                ) : (
+                  uploadedItems.map((file, index) => (
+                    <span
+                      key={`${file.name}-${file.type}-${index}`}
+                      className="rounded-full border bg-white px-2 py-1 text-[11px] text-gray-600"
+                    >
+                      📄 {file.name}
+                    </span>
+                  ))
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div className="rounded-[28px] border border-black/10 bg-white/90 p-6 shadow-[0_12px_24px_-18px_rgba(15,23,42,0.35)] flex flex-col gap-6">
+            <div data-tour="doc-steps">
+              <div className="flex flex-wrap gap-2">
                 {t.recorder.tones.map((option) => (
                   <button
                     key={option}
                     type="button"
                     className={
-                      "rounded-full border px-3 py-1 text-[11px] font-semibold transition " +
+                      "rounded-full px-4 py-1 text-xs font-semibold transition shadow-sm " +
                       (tone === option
-                        ? "border-teal-600 bg-teal-600 text-white"
-                        : "border-gray-200 bg-white text-gray-600 hover:border-gray-300")
+                        ? toneStyles[option] ?? "bg-blue-600 text-white"
+                        : (toneStyles[option] ?? "bg-gray-100 text-gray-600") +
+                          " opacity-60 hover:opacity-100")
                     }
                     onClick={() => setTone(option)}
                   >
@@ -768,25 +756,21 @@ export default function NewDocumentationPage() {
                 ))}
               </div>
 
-              <div className="mt-4">
-                <label className="text-[11px] font-semibold text-gray-600">
-                  {t.recorder.notesLabel}
-                </label>
-                <textarea
-                  className="mt-2 h-32 w-full rounded-xl border bg-white px-3 py-2 text-xs"
-                  value={supplementText}
-                  onChange={(e) => setSupplementText(e.target.value)}
-                  placeholder={t.supplemental.placeholder}
-                  aria-label={t.recorder.notesLabel}
-                />
-              </div>
+              <textarea
+                className="mt-4 h-40 w-full rounded-2xl border border-black/5 bg-white px-4 py-3 text-sm text-gray-700"
+                value={supplementText}
+                onChange={(e) => setSupplementText(e.target.value)}
+                placeholder={t.supplemental.placeholder}
+                aria-label={t.recorder.notesLabel}
+                data-tour="supplemental"
+              />
 
               <div className="mt-4">
-                <label className="text-[11px] font-semibold text-gray-600">
+                <label className="text-[11px] font-semibold uppercase tracking-[0.2em] text-gray-400">
                   {t.recorder.templateLabel}
                 </label>
                 <select
-                  className="mt-2 w-full rounded-xl border bg-white px-3 py-2 text-xs"
+                  className="mt-2 w-full rounded-2xl border border-black/5 bg-white px-3 py-2 text-xs text-gray-700"
                   value={templateId}
                   onChange={(e) => setTemplateId(e.target.value)}
                 >
@@ -799,51 +783,15 @@ export default function NewDocumentationPage() {
               </div>
             </div>
 
-            <div className="h-full rounded-2xl border border-black/5 bg-white/90 p-4 shadow-sm">
-              <div className="flex items-start justify-between">
-                <div>
-                  <div className="text-[11px] font-semibold uppercase tracking-wide text-gray-400">
-                    {t.recorder.statusLabel}
-                  </div>
-                  <div className="text-sm font-semibold text-gray-900">
-                    {recState === "done" ? t.recorder.status.idle : t.recorder.status[recState]}
-                  </div>
-                </div>
-                <div className="text-right">
-                  <div className="text-[11px] font-semibold text-gray-400">
-                    {t.recorder.timerLabel}
-                  </div>
-                  <div className="text-base font-semibold tabular-nums text-gray-900">
-                    {formatHMS(recordingSeconds)}
-                  </div>
-                </div>
-              </div>
+            <div className="h-px w-full bg-black/5" />
 
-              <div className="mt-4 grid gap-3 md:grid-cols-[1fr_auto] items-center rounded-2xl border border-black/5 bg-white px-3 py-3">
-                <div className="rounded-xl border border-dashed border-blue-100 bg-blue-50/40 px-3 py-4">
-                  <svg viewBox="0 0 520 80" className="h-12 w-full">
-                    <path
-                      d="M0 40 L20 40 L30 20 L40 60 L50 30 L60 50 L70 10 L80 55 L90 35 L100 40 L120 40 L130 20 L140 60 L150 30 L160 50 L170 10 L180 55 L190 35 L200 40 L220 40 L230 20 L240 60 L250 30 L260 50 L270 10 L280 55 L290 35 L300 40 L320 40 L330 20 L340 60 L350 30 L360 50 L370 10 L380 55 L390 35 L400 40 L420 40 L430 20 L440 60 L450 30 L460 50 L470 10 L480 55 L490 35 L520 40"
-                      fill="none"
-                      stroke="#14b8a6"
-                      strokeWidth="3"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                </div>
-                <div className="relative h-24 w-24 rounded-[28px] bg-gradient-to-b from-blue-500 via-blue-600 to-blue-700 shadow-lg">
-                  <div className="absolute inset-x-0 top-4 mx-auto h-10 w-10 rounded-full bg-blue-300/60" />
-                  <div className="absolute inset-x-0 top-8 mx-auto h-8 w-8 rounded-full bg-red-400 shadow-[0_6px_14px_rgba(248,113,113,0.45)]" />
-                  <div className="absolute inset-x-0 bottom-2 mx-auto h-3 w-10 rounded-full bg-blue-900/60" />
-                </div>
-              </div>
-
-              <div className="mt-3 flex items-center gap-2" data-tour="rec-button">
-                {(recState === "idle" || recState === "done") && (
-                  <button
+            <div className="flex flex-1 flex-col">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2" data-tour="rec-button">
+                  {(recState === "idle" || recState === "done") && (
+                    <button
                     type="button"
-                    className="flex h-10 w-10 items-center justify-center rounded-full border bg-white text-lg hover:border-gray-400 disabled:opacity-40"
+                    className="flex h-11 w-11 items-center justify-center rounded-full border bg-white text-lg shadow-sm hover:border-gray-400 disabled:opacity-40"
                     onClick={startRecording}
                     aria-label="Start recording"
                     disabled={recState === "processing" || openAiReady === false}
@@ -855,7 +803,7 @@ export default function NewDocumentationPage() {
                   <>
                     <button
                       type="button"
-                      className="flex h-10 w-10 items-center justify-center rounded-full border bg-white text-lg hover:border-gray-400 disabled:opacity-40"
+                      className="flex h-11 w-11 items-center justify-center rounded-full border bg-white text-lg shadow-sm hover:border-gray-400 disabled:opacity-40"
                       onClick={pauseRecording}
                       aria-label="Pause recording"
                       disabled={recState === "processing" || openAiReady === false}
@@ -864,7 +812,7 @@ export default function NewDocumentationPage() {
                     </button>
                     <button
                       type="button"
-                      className="flex h-10 w-10 items-center justify-center rounded-full border bg-white text-lg hover:border-gray-400 disabled:opacity-40"
+                      className="flex h-11 w-11 items-center justify-center rounded-full border bg-white text-lg shadow-sm hover:border-gray-400 disabled:opacity-40"
                       onClick={stopRecording}
                       aria-label="Stop recording"
                       disabled={recState === "processing" || openAiReady === false}
@@ -877,7 +825,7 @@ export default function NewDocumentationPage() {
                   <>
                     <button
                       type="button"
-                      className="flex h-10 w-10 items-center justify-center rounded-full border bg-white text-lg hover:border-gray-400 disabled:opacity-40"
+                      className="flex h-11 w-11 items-center justify-center rounded-full border bg-white text-lg shadow-sm hover:border-gray-400 disabled:opacity-40"
                       onClick={resumeRecording}
                       aria-label="Resume recording"
                       disabled={recState === "processing" || openAiReady === false}
@@ -886,7 +834,7 @@ export default function NewDocumentationPage() {
                     </button>
                     <button
                       type="button"
-                      className="flex h-10 w-10 items-center justify-center rounded-full border bg-white text-lg hover:border-gray-400 disabled:opacity-40"
+                      className="flex h-11 w-11 items-center justify-center rounded-full border bg-white text-lg shadow-sm hover:border-gray-400 disabled:opacity-40"
                       onClick={stopRecording}
                       aria-label="Stop recording"
                       disabled={recState === "processing" || openAiReady === false}
@@ -896,19 +844,33 @@ export default function NewDocumentationPage() {
                   </>
                 )}
               </div>
+              <span className="text-xs font-semibold text-gray-400">
+                {recState === "processing" ? t.recorder.processingLabel : ""}
+              </span>
+            </div>
 
-              <div className="mt-3 rounded-xl border bg-white px-3 py-2 text-right">
-                <div className="text-[11px] font-semibold text-blue-500">
-                  {t.recorder.avoidedLabel}
-                </div>
-                <div className="text-base font-semibold tabular-nums text-gray-900">
-                  {formatMMSS(writingAvoidedSeconds)}
+            <div className="relative mt-4 rounded-2xl border border-black/10 bg-white/90 px-4 py-4">
+              <div className="flex items-center gap-4">
+                <div className="flex h-14 flex-1 items-end gap-1">
+                  {waveBars.map((bar) => (
+                    <span
+                      key={bar}
+                      className={`wave-bar ${waveActive ? "wave-active" : ""}`}
+                      style={{ animationDelay: `${bar * 0.08}s` }}
+                    />
+                  ))}
                 </div>
               </div>
+            </div>
 
-              {recError ? (
-                <div className="mt-2 text-[11px] text-red-600">{recError}</div>
-              ) : null}
+              <div className="mt-4 text-3xl font-semibold tabular-nums text-gray-900">
+                {formatHMS(recordingSeconds)}
+              </div>
+              <div className="mt-1 text-xs text-gray-500">
+                {t.recorder.avoidedLabel}: {formatHHMM(writingAvoidedSeconds)}
+              </div>
+
+              {recError ? <div className="mt-2 text-[11px] text-red-600">{recError}</div> : null}
               {openAiReady === false ? (
                 <div className="mt-2 text-[11px] text-gray-500">
                   OpenAI API key missing. Add <span className="font-mono">OPENAI_API_KEY</span> to{" "}
@@ -916,58 +878,63 @@ export default function NewDocumentationPage() {
                 </div>
               ) : null}
 
-              <div className="mt-4 flex-1 flex flex-col">
-                <div className="text-[11px] font-semibold text-gray-600">
+              <div className="mt-5 flex-1 flex flex-col">
+                <div className="text-[11px] font-semibold uppercase tracking-[0.2em] text-gray-400">
                   {t.recorder.outputTitle}
                 </div>
-                <textarea
-                  className="mt-2 min-h-[160px] w-full flex-1 rounded-xl border bg-white px-3 py-2 text-xs"
-                  readOnly
-                  value={outputText}
-                  placeholder={t.recorder.outputPlaceholder}
-                  aria-label={t.recorder.outputTitle}
-                />
+                <div className="mt-2 flex-1 rounded-2xl border border-black/5 bg-white/80 p-3 text-xs text-gray-700 whitespace-pre-wrap">
+                  {outputText ? (
+                    outputText
+                  ) : (
+                    <span className="text-gray-400">{t.recorder.outputPlaceholder}</span>
+                  )}
+                </div>
+                <div className="mt-3 flex justify-end">
+                  <button
+                    type="button"
+                    className="text-xs font-semibold text-teal-700 hover:text-teal-800 disabled:opacity-40"
+                    onClick={async () => {
+                      await navigator.clipboard.writeText(outputText);
+                      alert(t.workspace.copied);
+                    }}
+                    disabled={!outputText}
+                  >
+                    {t.workspace.copy}
+                  </button>
+                </div>
               </div>
-
-              <div className="mt-3 flex items-center justify-between text-[11px] text-gray-500">
-                <span>{recState === "processing" ? t.recorder.processingLabel : ""}</span>
-                <button
-                  type="button"
-                  className="text-xs font-semibold text-teal-700 hover:text-teal-800 disabled:opacity-40"
-                  onClick={async () => {
-                    await navigator.clipboard.writeText(outputText);
-                    alert(t.workspace.copied);
-                  }}
-                  disabled={!outputText}
-                >
-                  {t.workspace.copy}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="rounded-2xl border bg-white p-4 shadow-sm">
-          <h2 className="text-sm font-semibold">{t.transcript.title}</h2>
-
-          <div className="mt-2 rounded-xl border bg-gray-50 p-3 text-xs text-gray-700">
-            <div className="font-semibold">{t.transcript.status}</div>
-            <div className="mt-1">{status}</div>
-          </div>
-
-          <div className="mt-3 space-y-2">
-            <div className="rounded-xl border p-3">
-              <div className="text-xs font-semibold text-gray-600">{t.transcript.final}</div>
-              <div className="mt-2 whitespace-pre-wrap text-sm">{finalText || t.transcript.noneYet}</div>
-            </div>
-
-            <div className="rounded-xl border p-3">
-              <div className="text-xs font-semibold text-gray-600">{t.transcript.live}</div>
-              <div className="mt-2 whitespace-pre-wrap text-sm text-gray-700">{partial || t.transcript.none}</div>
             </div>
           </div>
         </div>
       </div>
+
+      <style jsx>{`
+        .wave-bar {
+          width: 6px;
+          height: 16px;
+          border-radius: 999px;
+          background: #7fcfe5;
+          opacity: 0.7;
+          transform-origin: bottom;
+        }
+        .wave-active {
+          animation: wave 1.15s ease-in-out infinite;
+        }
+        @keyframes wave {
+          0% {
+            height: 10px;
+            opacity: 0.5;
+          }
+          50% {
+            height: 44px;
+            opacity: 0.95;
+          }
+          100% {
+            height: 16px;
+            opacity: 0.6;
+          }
+        }
+      `}</style>
     </div>
   );
 }

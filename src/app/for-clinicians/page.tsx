@@ -152,6 +152,11 @@ const copy = {
     ctaTitle: "Call-to-Action (Beispiel)",
     ctaBody:
       "Möchten Sie sehen, wie ein Entwurf in Ihrer Vorlage aussieht? Demo anfordern, Template testen oder einen Pilot in Ihrer Praxis starten.",
+    whisperDisclaimerTitle: "OpenAI Whisper Haftungsausschluss",
+    whisperDisclaimerBody: [
+      "THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.",
+      "IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.",
+    ],
   },
   en: {
     title: "For Therapists & Psychiatrists",
@@ -298,6 +303,11 @@ const copy = {
     ctaTitle: "Call to action (example)",
     ctaBody:
       "Want to see what a draft looks like in your template? Request a demo, test a template, or start a pilot in your practice.",
+    whisperDisclaimerTitle: "OpenAI Whisper disclaimer",
+    whisperDisclaimerBody: [
+      "THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.",
+      "IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.",
+    ],
   },
   it: {
     title: "Per Terapisti & Psichiatri",
@@ -444,6 +454,11 @@ const copy = {
     ctaTitle: "Call-to-action (esempio)",
     ctaBody:
       "Vuoi vedere come appare una bozza nel tuo modello? Richiedi una demo, testa un template o avvia un pilot nel tuo studio.",
+    whisperDisclaimerTitle: "Disclaimer OpenAI Whisper",
+    whisperDisclaimerBody: [
+      "THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.",
+      "IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.",
+    ],
   },
   fr: {
     title: "Pour Therapeutes & Psychiatres",
@@ -597,6 +612,11 @@ const copy = {
     ctaTitle: "Appel a l'action (exemple)",
     ctaBody:
       "Souhaitez-vous voir a quoi ressemble un brouillon dans votre modele? Demandez une demo, testez un template ou lancez un pilote.",
+    whisperDisclaimerTitle: "Avertissement OpenAI Whisper",
+    whisperDisclaimerBody: [
+      "THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.",
+      "IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.",
+    ],
   },
 } as const;
 
@@ -949,6 +969,15 @@ export default function ForCliniciansPage() {
           </div>
         </>
       )}
+
+      <div className="rounded-xl border bg-gray-50 p-4 text-xs text-gray-600">
+        <div className="text-sm font-semibold text-gray-800">{t.whisperDisclaimerTitle}</div>
+        <div className="mt-2 space-y-2">
+          {t.whisperDisclaimerBody.map((line) => (
+            <p key={line}>{line}</p>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }

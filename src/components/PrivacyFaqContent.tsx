@@ -174,6 +174,18 @@ const copy = {
           },
         ],
       },
+      {
+        title: "OpenAI Whisper Haftungsausschluss",
+        items: [
+          {
+            q: "Lizenzhinweis",
+            paragraphs: [
+              "THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.",
+              "IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.",
+            ],
+          },
+        ],
+      },
     ],
   },
   en: {
@@ -331,6 +343,18 @@ const copy = {
               "Clinician-controlled",
               "No automated clinical decisions",
               "Designed for confidentiality and professional responsibility",
+            ],
+          },
+        ],
+      },
+      {
+        title: "OpenAI Whisper disclaimer",
+        items: [
+          {
+            q: "License notice",
+            paragraphs: [
+              "THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.",
+              "IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.",
             ],
           },
         ],
@@ -496,6 +520,18 @@ const copy = {
           },
         ],
       },
+      {
+        title: "Disclaimer OpenAI Whisper",
+        items: [
+          {
+            q: "Nota di licenza",
+            paragraphs: [
+              "THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.",
+              "IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.",
+            ],
+          },
+        ],
+      },
     ],
   },
   fr: {
@@ -653,6 +689,18 @@ const copy = {
               "Controle par le clinicien",
               "Aucune decision clinique automatisee",
               "Concu pour la confidentialite et la responsabilite professionnelle",
+            ],
+          },
+        ],
+      },
+      {
+        title: "Avertissement OpenAI Whisper",
+        items: [
+          {
+            q: "Avis de licence",
+            paragraphs: [
+              "THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.",
+              "IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.",
             ],
           },
         ],
