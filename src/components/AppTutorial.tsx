@@ -25,7 +25,7 @@ const copy = {
     steps: {
       welcome: {
         title: "Willkommen bei DailyCheck.ch",
-        body: "Schön, dass Sie da sind! Hier ist ein kurzer Überblick, damit Sie sofort loslegen können.",
+        body: "Grossartig, dass Sie da sind! In weniger als einer Minute zeigen wir Ihnen die wichtigsten Bereiche.",
       },
       chatbot: {
         title: "Self-care Chatbot",

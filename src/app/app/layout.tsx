@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { isLoggedIn, logoutDemo } from "@/lib/demoAuth";
-import { usePathname, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useLanguage } from "@/components/LanguageProvider";
 import { WellbeingFloatingChat } from "@/components/WellbeingFloatingChat";
 import { AppTutorial } from "@/components/AppTutorial";
@@ -15,6 +15,7 @@ const copy = {
     templates: "Vorlagen",
     icd10: "ICD-10 Kategorien",
     checklists: "Dokumentations-Tools",
+    patientWindow: "Patient Window",
     settings: "Einstellungen",
     logout: "Abmelden",
   },
@@ -24,6 +25,7 @@ const copy = {
     templates: "Templates",
     icd10: "ICD-10 categories",
     checklists: "Documentation Tools",
+    patientWindow: "Patient Window",
     settings: "Settings",
     logout: "Logout",
   },
@@ -33,6 +35,7 @@ const copy = {
     templates: "Modelli",
     icd10: "Categorie ICD-10",
     checklists: "Strumenti di documentazione",
+    patientWindow: "Patient Window",
     settings: "Impostazioni",
     logout: "Esci",
   },
@@ -42,6 +45,7 @@ const copy = {
     templates: "Modeles",
     icd10: "Categories ICD-10",
     checklists: "Outils de documentation",
+    patientWindow: "Patient Window",
     settings: "Parametres",
     logout: "Deconnexion",
   },
@@ -52,8 +56,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const [ok, setOk] = useState(false);
   const { language } = useLanguage();
   const t = copy[language];
-  const pathname = usePathname();
-  const showRestart = pathname?.startsWith("/app");
 
   useEffect(() => {
     const logged = isLoggedIn();
@@ -93,6 +95,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             <Link className="hover:underline" href="/app/checklists" data-tour="nav-checklists">
               {t.checklists}
             </Link>
+            <Link className="hover:underline" href="/app/patient-window" data-tour="nav-patient-window">
+              {t.patientWindow}
+            </Link>
             <Link className="hover:underline" href="/app/settings">
               {t.settings}
             </Link>
@@ -112,20 +117,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       {children}
       <WellbeingFloatingChat />
       <AppTutorial />
-      {showRestart ? (
-        <button
-          type="button"
-          className="fixed right-4 top-1/2 z-[55] -translate-y-1/2 rounded-full border bg-white px-4 py-2 text-xs font-semibold text-gray-700 shadow-lg transition hover:border-gray-400 hover:text-gray-900 animate-pulse"
-          onClick={() => {
-            if (typeof window === "undefined") return;
-            window.localStorage.removeItem("dailycheck_tour_seen");
-            window.localStorage.setItem("dailycheck_tour_step", "0");
-            window.dispatchEvent(new CustomEvent("tour-restart"));
-          }}
-        >
-          Restart Tutorial
-        </button>
-      ) : null}
     </div>
   );
 }

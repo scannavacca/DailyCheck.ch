@@ -194,6 +194,30 @@ export default function WebmasterPage() {
       </div>
 
       <div className="rounded-2xl border bg-white p-6 shadow-sm">
+        <h2 className="text-lg font-semibold">DailyCheck.ch-app stats</h2>
+        <p className="mt-2 text-sm text-gray-700">
+          Placeholder for consent-based app metrics. No patient data is shared unless the user opts in.
+        </p>
+        <div className="mt-4 grid gap-3 md:grid-cols-3">
+          {[
+            { label: "Consented patients", value: "TBA" },
+            { label: "Active protocols", value: "TBA" },
+            { label: "Last sync", value: "TBA" },
+          ].map((item) => (
+            <div key={item.label} className="rounded-xl border bg-gray-50 px-4 py-3">
+              <div className="text-xs font-semibold uppercase tracking-[0.2em] text-gray-500">
+                {item.label}
+              </div>
+              <div className="mt-2 text-lg font-semibold text-gray-900">{item.value}</div>
+            </div>
+          ))}
+        </div>
+        <div className="mt-4 text-xs text-gray-500">
+          TBA: mood, sleep, drinking, calendar, ABC analysis, sport, nutrition, and other protocol data.
+        </div>
+      </div>
+
+      <div className="rounded-2xl border bg-white p-6 shadow-sm">
         <h2 className="text-lg font-semibold">Finance</h2>
         <p className="mt-2 text-sm text-gray-700">Monatliche Einnahmen (lokal gespeichert).</p>
         <div className="mt-4 grid gap-3 md:grid-cols-[200px_1fr] md:items-center">
