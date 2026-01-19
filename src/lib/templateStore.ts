@@ -15,6 +15,23 @@ const defaultTemplates: Template[] = [
     body:
       "Erstgespräch\n\nDatum: {{DATE}}\nPatient: {{PATIENT}}\n\nAnliegen:\n- {{COMPLAINT}}\n\nBiografie / Kontext:\n{{TRANSCRIPT}}\n\nPsychostatus:\n- {{PSYCHOSTATUS}}\n\nZusammenfassung:\n- {{SUMMARY}}\n\nPlan:\n- {{PLAN}}\n",
   },
+  {
+    id: "kurzbericht",
+    name: "Kurzbericht",
+    body:
+      "Kurzbericht\n\nDatum: {{DATE}}\nPatient: {{PATIENT}}\n\nKurzfazit:\n- {{SUMMARY}}\n\nKernaussagen:\n{{TRANSCRIPT}}\n\nPlan:\n- {{PLAN}}\n",
+  },
+  {
+    id: "icd10",
+    name: "ICD-10 orientiert",
+    body:
+      "ICD-10 orientiert\n\nDatum: {{DATE}}\nPatient: {{PATIENT}}\n\nSymptome / Cluster:\n- {{FOCUS}}\n\nPsychostatus:\n- {{PSYCHOSTATUS}}\n\nVerlauf:\n{{TRANSCRIPT}}\n\nBeurteilung:\n- {{ASSESSMENT}}\n\nPlan:\n- {{PLAN}}\n",
+  },
+  {
+    id: "custom",
+    name: "Custom Template",
+    body: "Custom Template\n\nDatum: {{DATE}}\nPatient: {{PATIENT}}\n\nInhalt:\n{{TRANSCRIPT}}\n",
+  },
 ];
 
 export function loadTemplates(): Template[] {
