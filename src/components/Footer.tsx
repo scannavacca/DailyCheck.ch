@@ -6,24 +6,28 @@ import { useLanguage } from "@/components/LanguageProvider";
 const copy = {
   de: {
     privacy: "Datenschutz & FAQ",
+    webmaster: "Webmaster",
     terms: "AGB",
     contact: "Kontakt",
     imprint: "Impressum",
   },
   en: {
     privacy: "Privacy & FAQ",
+    webmaster: "Webmaster",
     terms: "Terms",
     contact: "Contact",
     imprint: "Imprint",
   },
   it: {
     privacy: "Privacy e FAQ",
+    webmaster: "Webmaster",
     terms: "Termini",
     contact: "Contatto",
     imprint: "Note legali",
   },
   fr: {
     privacy: "Confidentialité & FAQ",
+    webmaster: "Webmaster",
     terms: "Conditions",
     contact: "Contact",
     imprint: "Mentions légales",
@@ -41,6 +45,9 @@ export function Footer() {
         <div className="flex gap-4">
           <Link className="hover:underline" href="/privacy">
             {t.privacy}
+          </Link>
+          <Link className="hover:underline" href="/webmaster-access">
+            {t.webmaster}
           </Link>
           <Link className="hover:underline" href="/terms">
             {t.terms}

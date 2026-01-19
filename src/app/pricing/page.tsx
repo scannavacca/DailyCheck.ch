@@ -5,9 +5,9 @@ import { useLanguage } from "@/components/LanguageProvider";
 
 const copy = {
   de: {
-    title: "Pricing",
-    intro: "Interne Preisuebersicht. Diese Seite ist nicht fuer die Oeffentlichkeit.",
-    tiersTitle: "Pakete",
+    title: "Pläne & Preise",
+    intro: "Wählen Sie den passenden Plan für Ihren klinischen Workflow.",
+    tiersTitle: "Pläne & Preise",
     yearlyToggle: "Jährliches Abo aktivieren",
     yearlyDiscount: "-34.5% Rabatt bei Jährlichem Abo",
     yearlyActiveLabel: "Jährlich aktiv",
@@ -154,7 +154,7 @@ export default function PricingPage() {
   return (
     <div className="space-y-4 rounded-2xl border bg-white p-6 shadow-sm">
       <div className="space-y-2">
-        <div className="text-xs font-semibold uppercase tracking-[0.2em] text-gray-500">Private</div>
+        <div className="text-xs font-semibold uppercase tracking-[0.2em] text-gray-500">Pricing</div>
         <h1 className="text-2xl font-semibold">{t.title}</h1>
         <p className="text-sm text-gray-700">{t.intro}</p>
       </div>

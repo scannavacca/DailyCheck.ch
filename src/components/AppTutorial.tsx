@@ -267,8 +267,9 @@ export function AppTutorial() {
       return;
     }
     const stored = Number(window.localStorage.getItem(storage.step) ?? "0");
-    setStepIndex(Number.isNaN(stored) ? 0 : stored);
-  }, []);
+    const nextIndex = Number.isNaN(stored) ? 0 : stored;
+    setStepIndex(nextIndex >= steps.length ? 0 : nextIndex);
+  }, [steps.length]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -288,6 +289,19 @@ export function AppTutorial() {
     window.addEventListener("tour-advance", handleAdvance as EventListener);
     return () => window.removeEventListener("tour-advance", handleAdvance as EventListener);
   }, [stepIndex, steps]);
+
+  useEffect(() => {
+    function handleRestart() {
+      if (typeof window !== "undefined") {
+        window.localStorage.removeItem(storage.seen);
+        window.localStorage.setItem(storage.step, "0");
+      }
+      setStepIndex(0);
+    }
+
+    window.addEventListener("tour-restart", handleRestart);
+    return () => window.removeEventListener("tour-restart", handleRestart);
+  }, []);
 
   useEffect(() => {
     if (stepIndex === null) return;

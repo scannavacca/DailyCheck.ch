@@ -86,9 +86,8 @@ export default function DashboardPage() {
       <h1 className="text-2xl font-semibold">{t.title}</h1>
 
       <div className="rounded-2xl border bg-white p-6 shadow-sm">
-        <div className="text-xs font-semibold uppercase text-gray-500">{t.welcomeLabel}</div>
         <div className="mt-1 text-lg font-semibold">
-          {firstName ? `${t.welcomeTitle} (${firstName})` : `${t.welcomeTitle} (${t.welcomeFallback})`}
+          {firstName ? `${t.welcomeTitle} ${firstName}` : `${t.welcomeTitle} ${t.welcomeFallback}`}
         </div>
         <p className="mt-2 text-sm text-gray-700">{t.welcomeNote}</p>
       </div>

@@ -9,7 +9,6 @@ import { PrimaryButton, SecondaryButton } from "@/components/landing/Buttons";
 
 const copy = {
   de: {
-    agenticSeo: "Agentic SEO",
     pricing: "Pricing",
     clinicians: "Für Psychiater*innen",
     login: "Login",
@@ -20,7 +19,6 @@ const copy = {
     menu: "Menü",
   },
   en: {
-    agenticSeo: "Agentic SEO",
     pricing: "Pricing",
     clinicians: "For Clinicians",
     login: "Login",
@@ -31,7 +29,6 @@ const copy = {
     menu: "Menu",
   },
   it: {
-    agenticSeo: "Agentic SEO",
     pricing: "Pricing",
     clinicians: "Per Professionisti",
     login: "Accesso",
@@ -42,7 +39,6 @@ const copy = {
     menu: "Menu",
   },
   fr: {
-    agenticSeo: "Agentic SEO",
     pricing: "Pricing",
     clinicians: "Pour Cliniciens",
     login: "Connexion",
@@ -53,22 +49,6 @@ const copy = {
     menu: "Menu",
   },
 };
-
-function GeminiPrismIcon() {
-  return (
-    <svg className="h-4 w-4" viewBox="0 0 24 24" aria-hidden="true">
-      <defs>
-        <linearGradient id="gemini-prism" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor="#f7c26b" />
-          <stop offset="50%" stopColor="#8ad1f6" />
-          <stop offset="100%" stopColor="#b88bf1" />
-        </linearGradient>
-      </defs>
-      <polygon points="12,3 21,9 12,21 3,9" fill="url(#gemini-prism)" />
-      <polygon points="12,3 21,9 12,21 3,9" fill="none" stroke="#2a1a0f" strokeWidth="0.8" />
-    </svg>
-  );
-}
 
 function PricingTagIcon() {
   return (
@@ -106,7 +86,7 @@ export function TopNav() {
           </Link>
 
           <div className="flex items-center gap-3">
-            <SecondaryButton href="/login" className="hidden md:inline-flex">
+            <SecondaryButton href="/demo-login" className="hidden md:inline-flex">
               {t.demo}
             </SecondaryButton>
             <PrimaryButton href="/contact" className="hidden md:inline-flex">
@@ -134,13 +114,6 @@ export function TopNav() {
           } ${isMuted ? "text-xs text-gray-600" : "text-sm"}`}
         >
           <Link
-            className="inline-flex items-center gap-2 rounded-full border border-transparent bg-[color:#f7e2bf] px-3 py-1 text-xs font-semibold text-[color:#2a1a0f] shadow-sm hover:bg-[color:#f3d6a6]"
-            href="/agentic-seo"
-          >
-            <GeminiPrismIcon />
-            {t.agenticSeo}
-          </Link>
-          <Link
             className="inline-flex items-center gap-2 rounded-full border border-transparent bg-[color:#d9e7f7] px-3 py-1 text-xs font-semibold text-[color:#1b2f4a] shadow-sm hover:bg-[color:#c9ddf4]"
             href="/pricing"
           >
@@ -162,7 +135,7 @@ export function TopNav() {
           <PrimaryButton href="/contact" className="md:hidden">
             {t.cta}
           </PrimaryButton>
-          <SecondaryButton href="/login" className="md:hidden">
+          <SecondaryButton href="/demo-login" className="md:hidden">
             {t.demo}
           </SecondaryButton>
           <LanguageSwitcher />

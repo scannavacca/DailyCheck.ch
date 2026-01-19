@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { isLoggedIn, logoutDemo } from "@/lib/demoAuth";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useLanguage } from "@/components/LanguageProvider";
 import { WellbeingFloatingChat } from "@/components/WellbeingFloatingChat";
 import { AppTutorial } from "@/components/AppTutorial";
@@ -52,6 +52,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const [ok, setOk] = useState(false);
   const { language } = useLanguage();
   const t = copy[language];
+  const pathname = usePathname();
+  const showRestart = pathname?.startsWith("/app");
 
   useEffect(() => {
     const logged = isLoggedIn();
@@ -110,6 +112,20 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       {children}
       <WellbeingFloatingChat />
       <AppTutorial />
+      {showRestart ? (
+        <button
+          type="button"
+          className="fixed right-4 top-1/2 z-[55] -translate-y-1/2 rounded-full border bg-white px-4 py-2 text-xs font-semibold text-gray-700 shadow-lg transition hover:border-gray-400 hover:text-gray-900 animate-pulse"
+          onClick={() => {
+            if (typeof window === "undefined") return;
+            window.localStorage.removeItem("dailycheck_tour_seen");
+            window.localStorage.setItem("dailycheck_tour_step", "0");
+            window.dispatchEvent(new CustomEvent("tour-restart"));
+          }}
+        >
+          Restart Tutorial
+        </button>
+      ) : null}
     </div>
   );
 }
