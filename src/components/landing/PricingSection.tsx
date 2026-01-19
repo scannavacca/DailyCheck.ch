@@ -51,7 +51,7 @@ type Cycle = "monthly" | "yearly";
 
 export function PricingSection() {
   const [cycle, setCycle] = useState<Cycle>("monthly");
-  const discountLabel = cycle === "yearly" ? "Spare bis zu 34.5%" : "";
+  const discountLabel = "Spare bis zu 34.5%";
   const prices = useMemo(
     () =>
       plans.map((plan) => ({
@@ -103,9 +103,14 @@ export function PricingSection() {
               Jährlich
             </button>
           </div>
-          {discountLabel ? (
-            <span className="text-xs font-semibold text-teal-700">{discountLabel}</span>
-          ) : null}
+          <span
+            className={`text-xs font-semibold ${
+              cycle === "yearly" ? "text-teal-700" : "text-gray-300"
+            }`}
+            aria-hidden={cycle !== "yearly"}
+          >
+            {discountLabel}
+          </span>
         </div>
       </div>
 
