@@ -131,7 +131,7 @@ const copy = {
           },
           {
             q: "Verbessert es die Dokumentationsqualität?",
-            paragraphs: ["Viele Kliniker berichten:"],
+            paragraphs: ["Viele Psychiater*innen berichten:"],
             list: [
               "vollständigere Notizen",
               "klarere Struktur",
@@ -150,7 +150,7 @@ const copy = {
             q: "Ist das rechtlich erlaubt?",
             paragraphs: ["Ja. KI-gestützte Dokumentation ist erlaubt, wenn:"],
             list: [
-              "der Kliniker verantwortlich bleibt",
+              "dass Psychiater*innen verantwortlich bleiben",
               "Patienteneinwilligung eingeholt wird, wo erforderlich",
               "Datenschutzprinzipien eingehalten werden",
             ],
@@ -167,7 +167,7 @@ const copy = {
             q: "Compliance-Haltung",
             list: [
               "Dokumentationsassistent",
-              "Kliniker-kontrolliert",
+              "Psychiater*innen-kontrolliert",
               "Keine automatisierten klinischen Entscheidungen",
               "Für Vertraulichkeit und professionelle Verantwortung entwickelt",
             ],
@@ -453,7 +453,7 @@ const copy = {
           },
           {
             q: "Aumenta la qualita della documentazione?",
-            paragraphs: ["Molti clinici riportano:"],
+            paragraphs: ["Molti professionisti riportano:"],
             list: [
               "Note piu complete",
               "Struttura piu chiara",

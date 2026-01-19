@@ -21,7 +21,7 @@ const copy = {
         "Ein Dokumentationsassistent für Psychiatrie & Psychotherapie. Sie diktieren oder laden Audio hoch, erhalten einen strukturierten Entwurf in Ihrer Vorlage und prüfen ihn vor dem Kopieren.",
       badges: [
         "Keine Diagnosen / keine Therapieempfehlungen",
-        "Kliniker bleibt verantwortlich",
+        "Psychiater*innen bleiben verantwortlich",
         "Audio wird nach Transkription gelöscht (empfohlen)",
       ],
       ctas: {
@@ -211,10 +211,10 @@ const copy = {
           Nächster Termin in 2 Wochen
         </>
       ),
-      note: "Nur Beispiel. Kliniker prüft und bearbeitet vor Nutzung.",
+      note: "Nur Beispiel. Psychiater*innen prüfen und bearbeiten vor Nutzung.",
     },
     why: {
-      title: "Warum Kliniker es nutzen",
+      title: "Warum Psychiater*innen es nutzen",
       subtitle: "Weniger Abend-Admin, mehr therapeutische Präsenz.",
       items: [
         "Strukturierter Entwurf im klinischen Format",
@@ -302,7 +302,7 @@ const copy = {
       forItems: [
         "Psychiater und Psychotherapeuten",
         "Ambulante Kliniken und Privatpraxen",
-        "Kliniker, die Struktur wollen, ohne Kontrolle zu verlieren",
+        "Psychiater*innen, die Struktur wollen, ohne Kontrolle zu verlieren",
       ],
       notTitle: "Für wen es nicht ist",
       notItems: [
@@ -314,10 +314,10 @@ const copy = {
     patients: {
       title: "Informationen für Patienten",
       body:
-        "Ihr Behandler kann einen Dokumentationsassistenten nutzen, um administrative Arbeit zu reduzieren. Das unterstützt strukturierte medizinische Notizen und ersetzt nicht den Kliniker.",
+        "Ihr Behandler kann einen Dokumentationsassistenten nutzen, um administrative Arbeit zu reduzieren. Das unterstützt strukturierte medizinische Notizen und ersetzt keine Psychiater*innen.",
       items: [
         "Audio wird nur zur Erstellung eines Entwurfs verwendet und sollte nach der Transkription gelöscht werden.",
-        "Der Kliniker prüft, bearbeitet und genehmigt alle Dokumente.",
+        "Psychiater*innen prüfen, bearbeiten und genehmigen alle Dokumente.",
         "Keine automatisierten Diagnosen oder Behandlungsempfehlungen.",
       ],
     },
@@ -345,7 +345,7 @@ const copy = {
       subtitle: "Klarer Rahmen ohne medizinische Entscheidungsautomatisierung.",
       items: [
         "Dokumentationsassistent",
-        "Kliniker-kontrolliert",
+        "Psychiater*innen-kontrolliert",
         "Keine automatisierten klinischen Entscheidungen",
         "Für Vertraulichkeit und professionelle Verantwortung entwickelt",
       ],
@@ -355,11 +355,11 @@ const copy = {
       items: [
         {
           q: "Ist das ein Patientenportal?",
-          a: "Nein. Die Plattform ist nur für Kliniker und fokussiert auf Dokumentationsentwürfe.",
+          a: "Nein. Die Plattform ist nur für Psychiater*innen und fokussiert auf Dokumentationsentwürfe.",
         },
         {
           q: "Diagnostiziert oder empfiehlt es Behandlungen?",
-          a: "Nein. Es ist nur ein Dokumentationsassistent. Kliniker bleiben für klinische Entscheidungen verantwortlich.",
+          a: "Nein. Es ist nur ein Dokumentationsassistent. Psychiater*innen bleiben für klinische Entscheidungen verantwortlich.",
         },
         {
           q: "Muss ich Patientendaten hier speichern?",
@@ -368,7 +368,7 @@ const copy = {
       ],
     },
     finalCta: {
-      title: "Pilotzugang für Kliniker",
+      title: "Pilotzugang für Psychiater*innen",
       body:
         "Fordern Sie Zugang an und testen Sie den Workflow mit Ihrer eigenen Vorlage.",
       primary: "Early Access",
@@ -786,7 +786,7 @@ const copy = {
       note: "Solo esempio. Il clinico rivede e modifica prima dell'uso.",
     },
     why: {
-      title: "Perché i clinici lo usano",
+      title: "Perché i professionisti lo usano",
       subtitle: "Meno admin serale, più presenza clinica.",
       items: [
         "Bozza strutturata in formato clinico",
@@ -874,7 +874,7 @@ const copy = {
       forItems: [
         "Psichiatri e psicoterapeuti",
         "Cliniche ambulatoriali e studi privati",
-        "Clinici che vogliono struttura senza perdere controllo",
+        "Professionisti che vogliono struttura senza perdere controllo",
       ],
       notTitle: "Per chi non è",
       notItems: [
@@ -927,11 +927,11 @@ const copy = {
       items: [
         {
           q: "È un portale pazienti?",
-          a: "No. La piattaforma è solo per clinici e si concentra sulle bozze di documentazione.",
+          a: "No. La piattaforma è solo per professionisti e si concentra sulle bozze di documentazione.",
         },
         {
           q: "Diagnostica o raccomanda trattamenti?",
-          a: "No. È solo un assistente di documentazione. I clinici restano responsabili delle decisioni.",
+          a: "No. È solo un assistente di documentazione. I professionisti restano responsabili delle decisioni.",
         },
         {
           q: "Devo archiviare qui i dati dei pazienti?",
@@ -940,7 +940,7 @@ const copy = {
       ],
     },
     finalCta: {
-      title: "Accesso pilota per clinici",
+      title: "Accesso pilota per professionisti",
       body:
         "Richiedi accesso e prova il flusso con il tuo modello.",
       primary: "Early Access",

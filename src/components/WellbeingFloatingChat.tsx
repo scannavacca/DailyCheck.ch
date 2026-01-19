@@ -22,7 +22,7 @@ const copyByLang: Record<string, Copy> = {
   de: {
     title: "Bot assistant",
     intro:
-      "Dieser Bot unterstützt Ihr persönliches Wohlbefinden als Kliniker. Keine Patientengespräche, keine Diagnosen, keine Medikation.",
+      "Ich bin ein Chatbot zur Beobachtung Ihres Gesundheitslevels. Ich unterstütze Ihr persönliches Wohlbefinden (nicht die Patientenversorgung).",
     boundaries: [
       "Nur für Ihre eigene Gesundheit.",
       "Keine Patientenversorgung oder patientenspezifische Fragen.",
@@ -38,7 +38,7 @@ const copyByLang: Record<string, Copy> = {
   en: {
     title: "Bot assistant",
     intro:
-      "This bot supports your personal wellbeing as a clinician. No patient care, no diagnoses, no medication advice.",
+      "I am a chatbot that monitors your health level and supports your personal wellbeing (not patient care).",
     boundaries: [
       "For your own health only.",
       "No patient care or patient-specific questions.",
@@ -53,7 +53,7 @@ const copyByLang: Record<string, Copy> = {
   it: {
     title: "Bot assistant",
     intro:
-      "Questo bot supporta il tuo benessere personale. Niente cura pazienti, niente diagnosi, niente farmaci.",
+      "Sono un chatbot che monitora il tuo livello di salute e supporta il tuo benessere personale (non per i pazienti).",
     boundaries: [
       "Solo per la tua salute.",
       "Niente cura dei pazienti o domande specifiche sui pazienti.",
@@ -68,7 +68,7 @@ const copyByLang: Record<string, Copy> = {
   fr: {
     title: "Bot assistant",
     intro:
-      "Ce bot soutient votre bien-etre personnel. Pas de soins aux patients, pas de diagnostic, pas de medicaments.",
+      "Je suis un chatbot qui surveille votre niveau de sante et soutient votre bien-etre personnel (pas pour les patients).",
     boundaries: [
       "Pour votre sante uniquement.",
       "Pas de soins aux patients ou de questions patient.",

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { loadTemplates } from "@/lib/templateStore";
 import { WhisperLiveRecorder } from "@/components/WhisperLiveRecorder";
 import { useLanguage } from "@/components/LanguageProvider";
@@ -55,10 +55,19 @@ const copy = {
       generate: "Entwurf aus Transkript erzeugen",
       note: "Dieser Text wird nicht gespeichert. Kopieren Sie ihn, bevor Sie die Seite schließen.",
       placeholder: "Klicken Sie auf \"Entwurf aus Transkript erzeugen\", sobald Sie Transkripttext haben.",
+      auto: "Entwurf wird automatisch aktualisiert.",
+      generating: "Entwurf wird erstellt...",
       copy: "In Zwischenablage kopieren",
       copied: "In die Zwischenablage kopiert.",
       clear: "Neu starten (Text löschen)",
-      notice: "Hinweis: Dies ist ein Entwurf. Die finale Verantwortung bleibt beim Kliniker.",
+      notice: "Hinweis: Dies ist ein Entwurf. Die finale Verantwortung bleibt bei Psychiater*innen.",
+    },
+    supplemental: {
+      title: "Zusatztext & Dokumente",
+      pasteLabel: "Text einfügen (optional)",
+      uploadLabel: "Dokument hinzufügen (.txt, .pdf, .docx, .doc)",
+      uploadNote: "Dateien werden nur für diese Sitzung verarbeitet und nicht gespeichert.",
+      placeholder: "Notizen, Vorbefunde oder Kontext hier einfügen...",
     },
     transcript: {
       title: "Transkript (später einklappbar)",
@@ -97,10 +106,19 @@ const copy = {
       generate: "Generate draft from transcript",
       note: "This text is not saved. Copy it out before closing the page.",
       placeholder: "Click \"Generate draft from transcript\" after you have transcript text.",
+      auto: "Draft updates automatically.",
+      generating: "Generating draft...",
       copy: "Copy to clipboard",
       copied: "Copied to clipboard.",
       clear: "Start new (clears text)",
       notice: "Notice: this is a draft. Final responsibility remains with the clinician.",
+    },
+    supplemental: {
+      title: "Supplemental text & files",
+      pasteLabel: "Paste text (optional)",
+      uploadLabel: "Add document (.txt, .pdf, .docx, .doc)",
+      uploadNote: "Files are processed for this session only and are not stored.",
+      placeholder: "Paste notes, prior findings, or context here...",
     },
     transcript: {
       title: "Transcript (collapsible later)",
@@ -139,10 +157,19 @@ const copy = {
       generate: "Genera bozza dal trascritto",
       note: "Questo testo non viene salvato. Copialo prima di chiudere la pagina.",
       placeholder: "Clicca su \"Genera bozza dal trascritto\" quando hai testo trascritto.",
+      auto: "La bozza si aggiorna automaticamente.",
+      generating: "Creazione bozza...",
       copy: "Copia negli appunti",
       copied: "Copiato negli appunti.",
       clear: "Nuova bozza (cancella testo)",
       notice: "Nota: questa è una bozza. La responsabilità finale resta al clinico.",
+    },
+    supplemental: {
+      title: "Testo aggiuntivo e documenti",
+      pasteLabel: "Incolla testo (opzionale)",
+      uploadLabel: "Aggiungi documento (.txt, .pdf, .docx, .doc)",
+      uploadNote: "I file vengono elaborati solo per questa sessione e non vengono salvati.",
+      placeholder: "Incolla note, referti o contesto qui...",
     },
     transcript: {
       title: "Trascritto (collassabile in seguito)",
@@ -181,10 +208,19 @@ const copy = {
       generate: "Générer un brouillon depuis la transcription",
       note: "Ce texte n'est pas enregistré. Copiez-le avant de fermer la page.",
       placeholder: "Cliquez sur \"Générer un brouillon depuis la transcription\" après avoir du texte transcrit.",
+      auto: "Le brouillon se met à jour automatiquement.",
+      generating: "Creation du brouillon...",
       copy: "Copier dans le presse-papiers",
       copied: "Copié dans le presse-papiers.",
       clear: "Nouveau brouillon (effacer le texte)",
       notice: "Note : ceci est un brouillon. La responsabilité finale reste au clinicien.",
+    },
+    supplemental: {
+      title: "Texte complémentaire & documents",
+      pasteLabel: "Coller du texte (optionnel)",
+      uploadLabel: "Ajouter un document (.txt, .pdf, .docx, .doc)",
+      uploadNote: "Les fichiers sont traités uniquement pour cette session et ne sont pas stockés.",
+      placeholder: "Collez des notes, antécédents ou contexte ici...",
     },
     transcript: {
       title: "Transcription (repliable plus tard)",
@@ -217,8 +253,17 @@ export default function NewDocumentationPage() {
   const [partial, setPartial] = useState("");
   const [finalText, setFinalText] = useState("");
   const [workspace, setWorkspace] = useState("");
+  const [supplementText, setSupplementText] = useState("");
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [draftBusy, setDraftBusy] = useState(false);
+  const [draftError, setDraftError] = useState<string | null>(null);
   const [savedMinutes, setSavedMinutes] = useState(0);
   const [hasDictation, setHasDictation] = useState(false);
+  const [recording, setRecording] = useState(false);
+
+  const draftTimeoutRef = useRef<number | null>(null);
+  const draftAbortRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
     setDocType(copy[language].docTypes[0]);
@@ -270,6 +315,117 @@ export default function NewDocumentationPage() {
     });
 
     setWorkspace(draft);
+  }
+
+  async function generateDraft() {
+    if (!selectedTemplate) return;
+    const transcript = finalText.trim();
+    const supplemental = supplementText.trim();
+    if (!transcript && !supplemental) return;
+
+    if (draftAbortRef.current) draftAbortRef.current.abort();
+    const controller = new AbortController();
+    draftAbortRef.current = controller;
+
+    setDraftBusy(true);
+    setDraftError(null);
+
+    try {
+      const res = await fetch("/api/generate-draft", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          template: selectedTemplate.body,
+          transcript,
+          supplemental,
+          language,
+          docType,
+        }),
+        signal: controller.signal,
+      });
+
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body?.error || `Request failed (${res.status})`);
+      }
+
+      const data = (await res.json()) as { draft?: string };
+      if (data.draft) setWorkspace(data.draft);
+    } catch (err: any) {
+      if (err?.name !== "AbortError") {
+        setDraftError(err?.message ?? "Draft generation failed.");
+      }
+    } finally {
+      setDraftBusy(false);
+    }
+  }
+
+  useEffect(() => {
+    const liveSource = [finalText, partial, supplementText].filter(Boolean).join("\n\n");
+    if (recording && liveSource) {
+      regenerateWorkspace(liveSource);
+    }
+  }, [recording, finalText, partial, supplementText, templateId]);
+
+  useEffect(() => {
+    if (recording) return;
+    const source = [finalText, supplementText].filter(Boolean).join("\n\n");
+    if (source) regenerateWorkspace(source);
+  }, [recording, finalText, supplementText, templateId]);
+
+  useEffect(() => {
+    if (recording) return;
+    if (!selectedTemplate) return;
+    if (!finalText.trim() && !supplementText.trim()) return;
+
+    if (draftTimeoutRef.current) {
+      window.clearTimeout(draftTimeoutRef.current);
+    }
+
+    draftTimeoutRef.current = window.setTimeout(() => {
+      void generateDraft();
+    }, 800);
+
+    return () => {
+      if (draftTimeoutRef.current) window.clearTimeout(draftTimeoutRef.current);
+    };
+  }, [recording, finalText, supplementText, templateId, docType, language]);
+
+  async function handleFileUpload(files: FileList | null) {
+    if (!files || files.length === 0) return;
+    setUploadError(null);
+    setUploading(true);
+
+    try {
+      const parts: string[] = [];
+      for (const file of Array.from(files)) {
+        const form = new FormData();
+        form.append("file", file);
+        const res = await fetch("/api/extract-text", {
+          method: "POST",
+          body: form,
+        });
+
+        if (!res.ok) {
+          const body = await res.json().catch(() => ({}));
+          throw new Error(body?.error || `Upload failed (${res.status})`);
+        }
+
+        const data = (await res.json()) as { text?: string };
+        const text = data.text?.trim() ?? "";
+        if (text) {
+          parts.push(`[${file.name}]\n${text}`);
+        }
+      }
+
+      if (parts.length > 0) {
+        setSupplementText((prev) => (prev ? `${prev}\n\n${parts.join("\n\n")}` : parts.join("\n\n")));
+      }
+    } catch (err: any) {
+      setUploadError(err?.message ?? "Upload failed.");
+    } finally {
+      setUploading(false);
+    }
   }
 
   return (
@@ -335,6 +491,7 @@ export default function NewDocumentationPage() {
                   useVAD={true}
                   variant="compact"
                   onStatus={(s) => setStatus(s as "Bereit." | "Idle." | "Inattivo." | "Inactif.")}
+                  onStateChange={(state) => setRecording(state.recording)}
                   onPartial={(text) => {
                     setPartial(text);
                     setHasDictation(true);
@@ -360,11 +517,43 @@ export default function NewDocumentationPage() {
             </div>
           </div>
 
+          <div className="mt-3 rounded-xl border bg-gray-50 p-3 text-xs text-gray-700">
+            <div className="text-xs font-semibold text-gray-600">{t.supplemental.title}</div>
+            <div className="mt-3">
+              <label className="text-[11px] font-semibold text-gray-600">{t.supplemental.uploadLabel}</label>
+              <input
+                className="mt-1 w-full rounded-xl border bg-white px-3 py-2 text-xs"
+                type="file"
+                accept=".txt,.pdf,.docx,.doc,.md,.rtf"
+                multiple
+                onChange={(e) => {
+                  void handleFileUpload(e.target.files);
+                  e.currentTarget.value = "";
+                }}
+                disabled={uploading}
+              />
+              <div className="mt-1 text-[11px] text-gray-500">{t.supplemental.uploadNote}</div>
+              {uploading ? <div className="mt-1 text-[11px] text-blue-600">Processing...</div> : null}
+              {uploadError ? <div className="mt-1 text-[11px] text-red-600">{uploadError}</div> : null}
+            </div>
+            <div className="mt-4">
+              <label className="text-[11px] font-semibold text-gray-600">{t.supplemental.pasteLabel}</label>
+              <textarea
+                className="mt-1 h-28 w-full rounded-xl border bg-white px-3 py-2 text-xs"
+                value={supplementText}
+                onChange={(e) => setSupplementText(e.target.value)}
+                placeholder={t.supplemental.placeholder}
+              />
+            </div>
+          </div>
+
           <div className="mt-2 flex items-center justify-between">
-            <p className="text-xs text-gray-500">{t.workspace.note}</p>
+            <p className="text-xs text-gray-500">
+              {t.workspace.note} {t.workspace.auto}
+            </p>
             <button
               className="text-sm underline"
-              onClick={() => regenerateWorkspace(finalText || partial)}
+              onClick={() => generateDraft()}
               disabled={!selectedTemplate}
             >
               {t.workspace.generate}
@@ -377,6 +566,9 @@ export default function NewDocumentationPage() {
             onChange={(e) => setWorkspace(e.target.value)}
             placeholder={t.workspace.placeholder}
           />
+
+          {draftBusy ? <div className="mt-2 text-xs text-blue-600">{t.workspace.generating}</div> : null}
+          {draftError ? <div className="mt-2 text-xs text-red-600">{draftError}</div> : null}
 
           <div className="mt-3 flex gap-3">
             <button
@@ -396,6 +588,7 @@ export default function NewDocumentationPage() {
                 setWorkspace("");
                 setFinalText("");
                 setPartial("");
+                setSupplementText("");
                 setHasDictation(false);
                 setStatus("Bereit.");
               }}

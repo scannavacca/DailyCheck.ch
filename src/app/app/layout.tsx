@@ -62,10 +62,12 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="space-y-6">
-      <div className="rounded-2xl border bg-white p-4 shadow-sm">
+      <div className="rounded-2xl border bg-gradient-to-r from-amber-50 via-white to-sky-50 p-5 shadow-sm">
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          <div className="font-semibold">{t.title}</div>
-          <nav className="flex flex-wrap gap-4 text-sm">
+          <div className="text-xs font-semibold uppercase tracking-[0.25em] text-gray-500">
+            {t.title}
+          </div>
+          <nav className="flex flex-wrap gap-4 text-base font-medium text-gray-800">
             <Link className="hover:underline" href="/app/new">
               {t.newDoc}
             </Link>

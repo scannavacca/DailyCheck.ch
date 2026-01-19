@@ -17,7 +17,7 @@ const plans = [
     yearly: 360,
     unit: "Lifetime access",
     billingLabel: "Lifetime access",
-    note: "Lebenslanger Zugang für die ersten 50 Kliniker",
+    note: "Lebenslanger Zugang für die ersten 50 Psychiater*innen",
     cta: "Auswählen",
     features: ["Basis-Diktat", "Vorlagen-Setup", "Monatlicher Review"],
   },

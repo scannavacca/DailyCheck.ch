@@ -18,7 +18,7 @@ const copy = {
         id: "ltd",
         name: "LTD (erste 50 Käufer)",
         price: "CHF 360 (Lifetime access)",
-        note: "Lebenslanger Zugang für die ersten 50 Kliniker",
+        note: "Lebenslanger Zugang für die ersten 50 Psychiater*innen",
         features: ["Basis-Diktat", "Vorlagen-Setup", "Monatlicher Review"],
       },
       {
@@ -86,9 +86,9 @@ const copy = {
     tiers: [
       {
         id: "ltd",
-        name: "LTD (primi 50 clinici)",
+        name: "LTD (primi 50 professionisti)",
         price: "CHF 360 (a vita)",
-        note: "Accesso permanente per i primi 50 clinici",
+        note: "Accesso permanente per i primi 50 professionisti",
         features: ["Dettatura base", "Setup modelli", "Review mensile"],
       },
       {

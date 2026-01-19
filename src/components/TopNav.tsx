@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { usePathname } from "next/navigation";
 import { useLanguage } from "@/components/LanguageProvider";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { PrimaryButton, SecondaryButton } from "@/components/landing/Buttons";
@@ -10,7 +11,7 @@ const copy = {
   de: {
     agenticSeo: "Agentic SEO",
     pricing: "Pricing",
-    clinicians: "Für Kliniker",
+    clinicians: "Für Psychiater*innen",
     login: "Login",
     privacy: "Datenschutz & FAQ",
     contact: "Kontakt",
@@ -32,7 +33,7 @@ const copy = {
   it: {
     agenticSeo: "Agentic SEO",
     pricing: "Pricing",
-    clinicians: "Per Clinici",
+    clinicians: "Per Professionisti",
     login: "Accesso",
     privacy: "Privacy e FAQ",
     contact: "Contatto",
@@ -88,12 +89,19 @@ export function TopNav() {
   const { language } = useLanguage();
   const t = copy[language];
   const [open, setOpen] = useState(false);
+  const pathname = usePathname();
+  const isAppRoute = pathname?.startsWith("/app");
+  const isLoginRoute = pathname === "/login";
+  const isMuted = isAppRoute || isLoginRoute;
 
   return (
-    <header className="border-b bg-white">
-      <div className="mx-auto max-w-6xl px-6 py-4">
+    <header className={`border-b ${isMuted ? "bg-white/70" : "bg-white shadow-sm"}`}>
+      <div className={`mx-auto max-w-6xl px-6 ${isMuted ? "py-2" : "py-5"}`}>
         <div className="flex items-center justify-between">
-          <Link href="/" className="font-semibold tracking-tight">
+          <Link
+            href="/"
+            className={`font-semibold tracking-tight ${isMuted ? "text-sm text-gray-600" : "text-base"}`}
+          >
             DailyCheck
           </Link>
 
@@ -121,9 +129,9 @@ export function TopNav() {
         </div>
 
         <nav
-          className={`mt-5 flex flex-col gap-4 text-sm md:mt-4 md:flex md:flex-row md:items-center md:justify-end ${
+          className={`mt-5 flex flex-col gap-4 md:mt-4 md:flex md:flex-row md:items-center md:justify-end ${
             open ? "flex" : "hidden"
-          }`}
+          } ${isMuted ? "text-xs text-gray-600" : "text-sm"}`}
         >
           <Link
             className="inline-flex items-center gap-2 rounded-full border border-transparent bg-[color:#f7e2bf] px-3 py-1 text-xs font-semibold text-[color:#2a1a0f] shadow-sm hover:bg-[color:#f3d6a6]"

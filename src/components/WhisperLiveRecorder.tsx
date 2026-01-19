@@ -12,6 +12,7 @@ type Props = {
   onFinal: (text: string) => void;
   onStatus: (s: string) => void;
   onStop?: () => void;
+  onStateChange?: (state: { recording: boolean; paused: boolean; elapsedSeconds: number }) => void;
   variant?: "full" | "compact";
 };
 
@@ -117,7 +118,7 @@ function getMimeType() {
 }
 
 export function WhisperLiveRecorder(props: Props) {
-  const { language, onPartial, onFinal, onStatus, onStop, variant = "full" } = props;
+  const { language, onPartial, onFinal, onStatus, onStop, onStateChange, variant = "full" } = props;
   const { language: uiLanguage } = useLanguage();
   const t = copy[uiLanguage] ?? copy.en;
   const ready = useOpenAIReady();
@@ -130,6 +131,19 @@ export function WhisperLiveRecorder(props: Props) {
 
   const [recording, setRecording] = useState(false);
   const [paused, setPaused] = useState(false);
+  const [elapsedSeconds, setElapsedSeconds] = useState(0);
+
+  useEffect(() => {
+    if (!recording || paused) return;
+    const timer = setInterval(() => {
+      setElapsedSeconds((prev) => prev + 1);
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [recording, paused]);
+
+  useEffect(() => {
+    onStateChange?.({ recording, paused, elapsedSeconds });
+  }, [recording, paused, elapsedSeconds, onStateChange]);
 
   useEffect(() => {
     return () => {
@@ -175,6 +189,7 @@ export function WhisperLiveRecorder(props: Props) {
       recorder.start();
       setRecording(true);
       setPaused(false);
+      setElapsedSeconds(0);
       onStatus(t.status.recording);
     } catch (err) {
       onStatus(t.status.error);
@@ -216,6 +231,7 @@ export function WhisperLiveRecorder(props: Props) {
       cleanupStream();
       setRecording(false);
       setPaused(false);
+      setElapsedSeconds(0);
       if (onStopRef.current) {
         setTimeout(() => {
           onStopRef.current?.();
@@ -233,6 +249,7 @@ export function WhisperLiveRecorder(props: Props) {
       cleanupStream();
       setRecording(false);
       setPaused(false);
+      setElapsedSeconds(0);
       onStop?.();
     }
   }
@@ -255,6 +272,10 @@ export function WhisperLiveRecorder(props: Props) {
     return (
       <div className="flex h-24 w-24 flex-col items-center justify-center rounded-xl border bg-white p-2 shadow-sm">
         <div className="text-[10px] font-semibold uppercase text-gray-500">Rec</div>
+        <div className="mt-1 text-[11px] font-semibold text-gray-700">
+          {`${Math.floor(elapsedSeconds / 60)}`.padStart(2, "0")}:
+          {`${elapsedSeconds % 60}`.padStart(2, "0")}
+        </div>
         <div className="mt-2 flex items-center gap-2">
           {!recording ? (
             <button
@@ -294,6 +315,10 @@ export function WhisperLiveRecorder(props: Props) {
         <div>
           <div className="text-sm font-semibold">{t.title}</div>
           <div className="text-xs text-gray-500">{t.subtitle}</div>
+          <div className="mt-2 text-xs font-semibold text-gray-700">
+            {`${Math.floor(elapsedSeconds / 60)}`.padStart(2, "0")}:
+            {`${elapsedSeconds % 60}`.padStart(2, "0")}
+          </div>
         </div>
 
         {!recording ? (
