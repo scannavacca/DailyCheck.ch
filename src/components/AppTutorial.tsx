@@ -28,8 +28,8 @@ const copy = {
         body: "Grossartig, dass Sie da sind! In weniger als einer Minute zeigen wir Ihnen die wichtigsten Bereiche.",
       },
       chatbot: {
-        title: "Self-care Chatbot",
-        body: "Hier finden Sie den persönlichen Wohlfühl-Chatbot. Er ist nur für Sie (nicht für Patientenversorgung).",
+        title: "Assistant Chat",
+        body: "Hier finden Sie den Chat-Assistenten fur schnelle Fragen und Hilfe.",
       },
       menu: {
         title: "Dashboard-Menü",
@@ -70,8 +70,8 @@ const copy = {
         body: "Great to have you here! Here is a quick walkthrough so you can start immediately.",
       },
       chatbot: {
-        title: "Self-care chatbot",
-        body: "This is your wellbeing assistant. It is for you only (not for patient care).",
+        title: "Assistant chat",
+        body: "This is your assistant chat for quick questions and help.",
       },
       menu: {
         title: "Dashboard menu",
@@ -112,8 +112,8 @@ const copy = {
         body: "Felici di averti qui! Ecco una guida rapida per partire subito.",
       },
       chatbot: {
-        title: "Chatbot self-care",
-        body: "Questo e il tuo assistente di benessere. Solo per te (non per i pazienti).",
+        title: "Chat assistente",
+        body: "Qui trovi il tuo assistente per domande rapide e supporto.",
       },
       menu: {
         title: "Menu dashboard",
@@ -154,8 +154,8 @@ const copy = {
         body: "Ravi de vous accueillir ! Voici un court guide pour demarrer vite.",
       },
       chatbot: {
-        title: "Chatbot self-care",
-        body: "Voici votre assistant bien-etre. Uniquement pour vous (pas pour les patients).",
+        title: "Assistant chat",
+        body: "Voici votre assistant pour des questions rapides et de l'aide.",
       },
       menu: {
         title: "Menu du tableau de bord",

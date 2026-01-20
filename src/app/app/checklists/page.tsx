@@ -1,9 +1,13 @@
 "use client";
 
-import { useMemo, useState, type ComponentType } from "react";
+import { useMemo, useState } from "react";
+import Link from "next/link";
 import * as Icons from "lucide-react";
 import { ChecklistItem } from "@/components/ChecklistItem";
 import { ChecklistSection } from "@/components/ChecklistSection";
+import AnxietyDiagnosticChecklistSection from "@/components/AnxietyDiagnosticChecklistSection";
+import DeterministicScaffoldChapter from "@/components/DeterministicScaffoldChapter";
+import NonBpdPersonalityDisorderModule from "@/components/NonBpdPersonalityDisorderModule";
 import { PSYCHOSTATUS_SECTIONS } from "@/lib/psychostatusCatalog";
 
 type LocalChecklistItem = {
@@ -24,6 +28,8 @@ type ChecklistModule = {
   description?: string[];
   instructions?: string;
   structure?: string[];
+  ctaLabel?: string;
+  ctaHref?: string;
   sections: LocalChecklistSection[];
 };
 
@@ -59,6 +65,18 @@ const modules: ChecklistModule[] = [
       "Kategorie oeffnen, Items anklicken. Optional: Normalbefund waehlen, falls unauffaellig. Zusammenfassung kopieren und in den Befund einfuegen.",
     structure: PSYCHOSTATUS_SECTIONS.map((section) => section.title),
     sections: psychostatusSections,
+  },
+  {
+    id: "icd10",
+    title: "ICD-10 Kategorien",
+    description: [
+      "Schneller Zugriff auf ICD-10 Kategorien fuer die Dokumentation.",
+      "Nutzen Sie die Liste, um passende Kategorien zu finden und zu uebernehmen.",
+    ],
+    instructions: "Oeffnen Sie die ICD-10 Kategorien und suchen Sie nach passenden Codes.",
+    ctaLabel: "ICD-10 Kategorien oeffnen",
+    ctaHref: "/app/icd10",
+    sections: [],
   },
   {
     id: "unipolar",
@@ -201,6 +219,41 @@ const modules: ChecklistModule[] = [
   },
 ];
 
+const moduleJumpOptions = [
+  {
+    id: "personality-diagnostic-module",
+    label: "Persoenlichkeitsstoerungen - Diagnostikmodul (Deterministisch)",
+  },
+  {
+    id: "anxiety-diagnostic-module",
+    label: "Angststoerungen - Diagnostik (deterministische Dokumentation)",
+  },
+  {
+    id: "bpd-module",
+    label: "Borderline Personality Disorder Module (Deterministic)",
+  },
+  {
+    id: "ptsd-module",
+    label: "PTSD Module (Deterministic)",
+  },
+  {
+    id: "ocd-zwangsstoerung-module",
+    label: "OCD / Zwangsstoerung Module (Deterministic)",
+  },
+  {
+    id: "bipolar-spectrum-module",
+    label: "Bipolar Spectrum Module (Deterministic)",
+  },
+  {
+    id: "psychosis-schizophrenia-module",
+    label: "Psychosis / Schizophrenia Module (Deterministic)",
+  },
+  {
+    id: "amdp-symptom-checklist",
+    label: "Clickable Symptom Checklist (AMDP-inspired, reworded)",
+  },
+];
+
 const sectionIndex = new Map<string, LocalChecklistSection>();
 modules.forEach((module) => {
   module.sections.forEach((section) => {
@@ -266,6 +319,7 @@ function buildSummary(selected: Set<string>) {
 export default function ChecklistsPage() {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [copied, setCopied] = useState(false);
+  const [jumpTarget, setJumpTarget] = useState("");
 
   const summaryText = useMemo(() => buildSummary(selected), [selected]);
 
@@ -324,23 +378,54 @@ export default function ChecklistsPage() {
           Strukturierte Checklisten fuer Befund, Verlauf und Symptomatik. Auswahl wird direkt in die
           Zusammenfassung uebernommen.
         </p>
+        <div className="rounded-2xl border bg-white p-4 shadow-sm">
+          <label className="text-xs font-semibold uppercase tracking-[0.2em] text-gray-400">
+            Zum Modul springen
+          </label>
+          <select
+            className="mt-2 w-full rounded-xl border bg-white px-3 py-2 text-sm"
+            value={jumpTarget}
+            onChange={(event) => {
+              const value = event.target.value;
+              setJumpTarget(value);
+              if (!value) return;
+              const target = document.getElementById(value);
+              if (target) target.scrollIntoView({ behavior: "smooth", block: "start" });
+            }}
+          >
+            <option value="">Modul auswaehlen...</option>
+            {moduleJumpOptions.map((option) => (
+              <option key={option.id} value={option.id}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[1.1fr,0.9fr]">
         <section className="space-y-4">
           {modules.map((module) => {
-            const moduleSelectedCount = module.sections.reduce(
-              (count, section) => count + section.items.filter((item) => selected.has(item.id)).length,
-              0
-            );
+            const moduleSelectedCount =
+              module.sections.length > 0
+                ? module.sections.reduce(
+                    (count, section) =>
+                      count + section.items.filter((item) => selected.has(item.id)).length,
+                    0
+                  )
+                : null;
 
             return (
               <details key={module.id} className="rounded-2xl border bg-white p-4 shadow-sm">
                 <summary className="flex cursor-pointer items-center justify-between gap-3 text-sm font-semibold">
                   <span>{module.title}</span>
-                  <span className="rounded-full border px-2 py-1 text-xs text-gray-500">
-                    {moduleSelectedCount} ausgewaehlt
-                  </span>
+                  {moduleSelectedCount !== null ? (
+                    <span className="rounded-full border px-2 py-1 text-xs text-gray-500">
+                      {moduleSelectedCount} ausgewaehlt
+                    </span>
+                  ) : (
+                    <span className="rounded-full border px-2 py-1 text-xs text-gray-500">Tool</span>
+                  )}
                 </summary>
 
                 <div className="mt-4 space-y-4">
@@ -354,6 +439,16 @@ export default function ChecklistsPage() {
                     <div className="rounded-xl border bg-gray-50 p-3 text-sm text-gray-700">
                       <div className="text-xs font-semibold text-gray-600">Anleitung</div>
                       <p className="mt-2">{module.instructions}</p>
+                    </div>
+                  ) : null}
+                  {module.ctaHref ? (
+                    <div>
+                      <Link
+                        className="inline-flex items-center rounded-xl border bg-white px-4 py-2 text-xs font-semibold hover:bg-gray-50"
+                        href={module.ctaHref}
+                      >
+                        {module.ctaLabel ?? "Oeffnen"}
+                      </Link>
                     </div>
                   ) : null}
 
@@ -458,6 +553,26 @@ export default function ChecklistsPage() {
           </div>
         </section>
       </div>
+
+      <DeterministicScaffoldChapter />
+
+      <details className="rounded-2xl border bg-white shadow-sm" id="personality-diagnostic-module">
+        <summary className="cursor-pointer px-6 py-4 text-lg font-semibold text-gray-900">
+          Persoenlichkeitsstoerungen - Diagnostikmodul (Deterministisch)
+        </summary>
+        <div className="px-6 pb-6">
+          <NonBpdPersonalityDisorderModule />
+        </div>
+      </details>
+
+      <details className="rounded-2xl border bg-white shadow-sm" id="anxiety-diagnostic-module">
+        <summary className="cursor-pointer px-6 py-4 text-lg font-semibold text-gray-900">
+          Angststoerungen - Diagnostik (deterministische Dokumentation)
+        </summary>
+        <div className="px-6 pb-6">
+          <AnxietyDiagnosticChecklistSection />
+        </div>
+      </details>
     </div>
   );
 }

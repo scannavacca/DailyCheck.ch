@@ -3,19 +3,13 @@
 import { useMemo, useState } from "react";
 import { useLanguage } from "@/components/LanguageProvider";
 import { useOpenAIReady } from "@/lib/useOpenAIReady";
-import { looksLikePatientCare, patientCareRefusalMessage } from "@/lib/safetyGuards";
 
 type ChatMsg = { role: "user" | "assistant"; content: string };
 
 type Copy = {
   title: string;
   intro: string;
-  boundaries: string[];
-  confirm: string;
-  guidanceShow: string;
-  guidanceHide: string;
-  placeholderEnabled: string;
-  placeholderDisabled: string;
+  placeholder: string;
   send: string;
   temporaryNote: string;
   restart: string;
@@ -24,73 +18,32 @@ type Copy = {
 const copyByLang: Record<string, Copy> = {
   de: {
     title: "Bot assistant",
-    intro:
-      "Ich bin ein Chatbot zur Beobachtung Ihres Gesundheitslevels. Ich unterstütze Ihr persönliches Wohlbefinden (nicht die Patientenversorgung).",
-    boundaries: [
-      "Nur für Ihre eigene Gesundheit.",
-      "Keine Patientenversorgung oder patientenspezifische Fragen.",
-      "Keine Medikations- oder Diagnostikvorschläge.",
-    ],
-    confirm:
-      "Ich bestätige: Dieser Chat ist nur für mein eigenes Wohlbefinden (nicht für Patientenversorgung).",
-    guidanceShow: "Hinweise anzeigen",
-    guidanceHide: "Hinweise ausblenden",
-    placeholderEnabled: "Fragen zu Stress, Schlaf, Erholung, Gewohnheiten...",
-    placeholderDisabled: "Bitte zuerst bestätigen",
+    intro: "Ich bin dein Chat-Assistent. Frag mich alles, wobei ich helfen kann.",
+    placeholder: "Frage eingeben...",
     send: "Senden",
     temporaryNote: "Temporäre Sitzung: keine Speicherung.",
     restart: "Tutorial neu starten",
   },
   en: {
     title: "Bot assistant",
-    intro:
-      "I am a chatbot that monitors your health level and supports your personal wellbeing (not patient care).",
-    boundaries: [
-      "For your own health only.",
-      "No patient care or patient-specific questions.",
-      "No medication or diagnostic suggestions.",
-    ],
-    confirm: "I confirm this chat is only for my own wellbeing (not for patient care).",
-    guidanceShow: "Show guidance",
-    guidanceHide: "Hide guidance",
-    placeholderEnabled: "Ask about stress, sleep, recovery, habits...",
-    placeholderDisabled: "Please confirm first",
+    intro: "I am your assistant. Ask me anything you need help with.",
+    placeholder: "Type a question...",
     send: "Send",
     temporaryNote: "Temporary session: no storage.",
     restart: "Restart tutorial",
   },
   it: {
     title: "Bot assistant",
-    intro:
-      "Sono un chatbot che monitora il tuo livello di salute e supporta il tuo benessere personale (non per i pazienti).",
-    boundaries: [
-      "Solo per la tua salute.",
-      "Niente cura dei pazienti o domande specifiche sui pazienti.",
-      "Nessun suggerimento su farmaci o diagnosi.",
-    ],
-    confirm: "Confermo: questa chat e solo per il mio benessere (non per i pazienti).",
-    guidanceShow: "Mostra avvisi",
-    guidanceHide: "Nascondi avvisi",
-    placeholderEnabled: "Chiedi di stress, sonno, recupero, abitudini...",
-    placeholderDisabled: "Conferma prima",
+    intro: "Sono il tuo assistente. Chiedimi pure qualsiasi cosa.",
+    placeholder: "Scrivi una domanda...",
     send: "Invia",
     temporaryNote: "Sessione temporanea: nessun salvataggio.",
     restart: "Restart tutorial",
   },
   fr: {
     title: "Bot assistant",
-    intro:
-      "Je suis un chatbot qui surveille votre niveau de sante et soutient votre bien-etre personnel (pas pour les patients).",
-    boundaries: [
-      "Pour votre sante uniquement.",
-      "Pas de soins aux patients ou de questions patient.",
-      "Pas de suggestions de medicaments ou de diagnostics.",
-    ],
-    confirm: "Je confirme: ce chat est pour mon bien-etre (pas pour les patients).",
-    guidanceShow: "Afficher les infos",
-    guidanceHide: "Masquer les infos",
-    placeholderEnabled: "Questions sur stress, sommeil, recuperation, habitudes...",
-    placeholderDisabled: "Veuillez confirmer",
+    intro: "Je suis votre assistant. Posez-moi vos questions.",
+    placeholder: "Saisissez une question...",
     send: "Envoyer",
     temporaryNote: "Session temporaire: aucune sauvegarde.",
     restart: "Restart tutorial",
@@ -103,8 +56,6 @@ export function WellbeingFloatingChat() {
   const ready = useOpenAIReady();
 
   const [open, setOpen] = useState(false);
-  const [accepted, setAccepted] = useState(false);
-  const [showGuidance, setShowGuidance] = useState(true);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -115,25 +66,12 @@ export function WellbeingFloatingChat() {
     },
   ]);
 
-  const canSend = useMemo(
-    () => accepted && input.trim().length > 0 && !busy && ready !== false,
-    [accepted, input, busy, ready]
-  );
+  const canSend = useMemo(() => input.trim().length > 0 && !busy && ready !== false, [input, busy, ready]);
 
   async function send() {
     setError(null);
     const text = input.trim();
     if (!text || ready === false) return;
-
-    if (looksLikePatientCare(text)) {
-      setMessages((prev) => [
-        ...prev,
-        { role: "user", content: text },
-        { role: "assistant", content: patientCareRefusalMessage() },
-      ]);
-      setInput("");
-      return;
-    }
 
     setBusy(true);
     const nextMessages = [...messages, { role: "user", content: text }];
@@ -152,8 +90,9 @@ export function WellbeingFloatingChat() {
         throw new Error(body?.error || `Request failed (${res.status})`);
       }
 
-      const data = (await res.json()) as { reply: string };
-      setMessages((prev) => [...prev, { role: "assistant", content: data.reply }]);
+      const data = (await res.json()) as { reply?: string; text?: string };
+      const reply = data.reply ?? data.text ?? "";
+      setMessages((prev) => [...prev, { role: "assistant", content: reply || "No response." }]);
     } catch (e: any) {
       setError(e?.message ?? "Something went wrong.");
     } finally {
@@ -168,61 +107,19 @@ export function WellbeingFloatingChat() {
           <div className="flex h-full flex-col">
             <div className="flex items-center justify-between border-b px-4 py-3">
               <div className="text-sm font-semibold">{t.title}</div>
-              <div className="flex items-center gap-2">
-                <button
-                  className="rounded-full px-2 py-1 text-[11px] text-gray-600 hover:bg-gray-100"
-                  onClick={() => setShowGuidance((prev) => !prev)}
-                  aria-label="Toggle guidance"
-                >
-                  {showGuidance ? t.guidanceHide : t.guidanceShow}
-                </button>
-                <button
-                  className="rounded-full px-2 py-1 text-xs text-gray-600 hover:bg-gray-100"
-                  onClick={() => setOpen(false)}
-                  aria-label="Close chat"
-                >
-                  Close
-                </button>
-              </div>
+              <button
+                className="rounded-full px-2 py-1 text-xs text-gray-600 hover:bg-gray-100"
+                onClick={() => setOpen(false)}
+                aria-label="Close chat"
+              >
+                Close
+              </button>
             </div>
 
-            {showGuidance ? (
-              <div className="px-4 py-2 text-[11px] text-gray-600">
-                <div>{t.temporaryNote}</div>
-                <ul className="mt-2 list-disc space-y-1 pl-4">
-                  {t.boundaries.map((item) => (
-                    <li key={item}>{item}</li>
-                  ))}
-                </ul>
-                <label className="mt-2 flex items-start gap-2">
-                  <input
-                    type="checkbox"
-                    className="mt-0.5"
-                    checked={accepted}
-                    onChange={(e) => {
-                      const next = e.target.checked;
-                      setAccepted(next);
-                      if (next) setShowGuidance(false);
-                    }}
-                  />
-                  <span>{t.confirm}</span>
-                </label>
-              </div>
-            ) : (
-              <div className="px-4 py-2 text-[11px] text-gray-500">
-                <button
-                  className="inline-flex items-center gap-1 text-xs font-semibold text-gray-700 hover:text-gray-900"
-                  onClick={() => setShowGuidance(true)}
-                  aria-label="Show guidance"
-                >
-                  <span aria-hidden="true">▾</span>
-                  {t.guidanceShow}
-                </button>
-              </div>
-            )}
+            <div className="px-4 py-2 text-[11px] text-gray-500">{t.temporaryNote}</div>
 
-            <div className="flex-1 px-4">
-              <div className="h-full overflow-y-auto rounded-xl border bg-gray-50 p-3">
+            <div className="flex-1 px-4 pb-4">
+              <div className="h-[calc(100%-92px)] overflow-y-auto rounded-xl border bg-gray-50 p-3">
                 <div className="space-y-2">
                   {messages.map((m, i) => (
                     <div key={`${m.role}-${i}`} className={m.role === "user" ? "text-right" : "text-left"}>
@@ -241,19 +138,13 @@ export function WellbeingFloatingChat() {
 
               {error ? <div className="mt-2 text-xs text-red-600">{error}</div> : null}
 
-              <div className="mt-3 flex gap-2 pb-4">
+              <div className="mt-3 flex items-center gap-2">
                 <input
                   className="w-full rounded-xl border px-3 py-2 text-xs disabled:bg-gray-100"
-                  placeholder={
-                    ready === false
-                      ? "OpenAI not configured"
-                      : accepted
-                      ? t.placeholderEnabled
-                      : t.placeholderDisabled
-                  }
+                  placeholder={ready === false ? "OpenAI not configured" : t.placeholder}
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
-                  disabled={!accepted || busy || ready === false}
+                  disabled={busy || ready === false}
                   onKeyDown={(e) => {
                     if (e.key === "Enter") send();
                   }}
@@ -287,7 +178,7 @@ export function WellbeingFloatingChat() {
         <button
           className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-600 text-white shadow-lg hover:bg-blue-700"
           onClick={() => setOpen((v) => !v)}
-          aria-label="Open wellbeing chat"
+          aria-label="Open assistant chat"
           data-tour="chatbot-button"
         >
           <span className="text-2xl leading-none">+</span>

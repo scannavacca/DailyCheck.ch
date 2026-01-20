@@ -10,8 +10,6 @@ function formatHMS(totalSeconds: number) {
   const seconds = totalSeconds % 60;
   return `${hours}`.padStart(2, "0") + ":" + `${minutes}`.padStart(2, "0") + ":" + `${seconds}`.padStart(2, "0");
 }
-
-function getMimeType() {
   const candidates = ["audio/webm;codecs=opus", "audio/webm", "audio/mp4;codecs=mp4a.40.2", "audio/mp4"];
   return candidates.find((type) => MediaRecorder.isTypeSupported(type)) || "";
 }
@@ -39,6 +37,12 @@ function formatHHMM(totalSeconds: number) {
   const hours = Math.floor(totalSeconds / 3600);
   const minutes = Math.floor((totalSeconds % 3600) / 60);
   return `${hours}`.padStart(2, "0") + ":" + `${minutes}`.padStart(2, "0");
+}
+
+function formatMMSS(totalSeconds: number) {
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return `${minutes}`.padStart(2, "0") + ":" + `${seconds}`.padStart(2, "0");
 }
 
 type TemplateOption = { id: string; name: string; body: string };
@@ -118,7 +122,7 @@ const copy = {
       attachmentsTitle: "Anhänge",
       attachmentsEmpty: "Keine Uploads",
       toneLabel: "Tone",
-      tones: ["Professional", "Neutral", "Urgent"],
+      tones: ["Professional", "Neutral", "Urgent", "Friendly"],
       notesLabel: "Notes",
       templateLabel: "Template",
       outputTitle: "Draft output",
@@ -131,7 +135,7 @@ const copy = {
         processing: "Verarbeitung...",
       },
       timerLabel: "Recording time",
-      avoidedLabel: "Time writing avoided",
+      avoidedLabel: "Time writing now avoided",
       processingLabel: "Verarbeitung...",
     },
     transcript: {
@@ -191,7 +195,7 @@ const copy = {
       attachmentsTitle: "Attachments",
       attachmentsEmpty: "No uploads yet",
       toneLabel: "Tone",
-      tones: ["Professional", "Neutral", "Urgent"],
+      tones: ["Professional", "Neutral", "Urgent", "Friendly"],
       notesLabel: "Notes",
       templateLabel: "Template",
       outputTitle: "Draft output",
@@ -204,7 +208,7 @@ const copy = {
         processing: "Processing...",
       },
       timerLabel: "Recording time",
-      avoidedLabel: "Time writing avoided",
+      avoidedLabel: "Time writing now avoided",
       processingLabel: "Processing...",
     },
     transcript: {
@@ -264,7 +268,7 @@ const copy = {
       attachmentsTitle: "Allegati",
       attachmentsEmpty: "Nessun upload",
       toneLabel: "Tone",
-      tones: ["Professional", "Neutral", "Urgent"],
+      tones: ["Professional", "Neutral", "Urgent", "Friendly"],
       notesLabel: "Notes",
       templateLabel: "Template",
       outputTitle: "Draft output",
@@ -277,7 +281,7 @@ const copy = {
         processing: "Elaborazione...",
       },
       timerLabel: "Tempo di registrazione",
-      avoidedLabel: "Time writing avoided",
+      avoidedLabel: "Time writing now avoided",
       processingLabel: "Elaborazione...",
     },
     transcript: {
@@ -337,7 +341,7 @@ const copy = {
       attachmentsTitle: "Pieces jointes",
       attachmentsEmpty: "Aucun upload",
       toneLabel: "Tone",
-      tones: ["Professional", "Neutral", "Urgent"],
+      tones: ["Professional", "Neutral", "Urgent", "Friendly"],
       notesLabel: "Notes",
       templateLabel: "Template",
       outputTitle: "Draft output",
@@ -350,7 +354,7 @@ const copy = {
         processing: "Traitement...",
       },
       timerLabel: "Temps d'enregistrement",
-      avoidedLabel: "Time writing avoided",
+      avoidedLabel: "Time writing now avoided",
       processingLabel: "Traitement...",
     },
     transcript: {
@@ -392,18 +396,20 @@ export default function NewDocumentationPage() {
   const [recError, setRecError] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const liveAvoidedSeconds = Math.round(recordingSeconds * 1.4);
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const chunksRef = useRef<BlobPart[]>([]);
   const recordingSecondsRef = useRef(0);
 
-  const waveBars = useMemo(() => Array.from({ length: 18 }, (_, i) => i), []);
+  const waveBars = useMemo(() => Array.from({ length: 32 }, (_, i) => i), []);
   const waveActive = recState === "recording";
   const toneStyles: Record<string, string> = {
     Professional: "bg-blue-600 text-white",
     Neutral: "bg-slate-200 text-slate-700",
     Urgent: "bg-orange-500 text-white",
+    Friendly: "bg-green-500 text-white",
   };
   useEffect(() => {
     setTone(copy[language].recorder.tones[0]);
@@ -746,7 +752,21 @@ export default function NewDocumentationPage() {
             </div>
 
             <div className="rounded-[28px] border border-black/10 bg-white/90 p-4 shadow-[0_12px_24px_-18px_rgba(15,23,42,0.35)]">
-              <div className="text-[11px] font-semibold uppercase tracking-[0.2em] text-gray-400">
+              <div className="rounded-2xl bg-gradient-to-br from-[#eef3f9] via-[#f7f9fc] to-white p-4">
+                <div className="flex h-28 items-center justify-center">
+                  <div className="flex items-center gap-4 opacity-80">
+                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white shadow-sm">
+                      <span className="text-2xl">🎵</span>
+                    </div>
+                    <div className="flex h-16 w-20 flex-col justify-center gap-2 rounded-2xl bg-white px-3 shadow-sm">
+                      <span className="h-2 w-10 rounded-full bg-[#c9d8f0]" />
+                      <span className="h-2 w-14 rounded-full bg-[#c9d8f0]" />
+                      <span className="h-2 w-8 rounded-full bg-[#c9d8f0]" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="mt-4 text-[11px] font-semibold uppercase tracking-[0.2em] text-gray-400">
                 {t.recorder.attachmentsTitle}
               </div>
               <div className="mt-3 flex flex-wrap gap-2">
@@ -821,15 +841,15 @@ export default function NewDocumentationPage() {
                 <div className="flex items-center gap-2" data-tour="rec-button">
                   {(recState === "idle" || recState === "done") && (
                     <button
-                    type="button"
-                    className="flex h-11 w-11 items-center justify-center rounded-full border bg-white text-lg shadow-sm hover:border-gray-400 disabled:opacity-40"
-                    onClick={startRecording}
-                    aria-label="Start recording"
-                    disabled={recState === "processing" || openAiReady === false}
-                  >
-                    🔴
-                  </button>
-                )}
+                      type="button"
+                      className="flex h-11 w-11 items-center justify-center rounded-full border bg-white text-lg shadow-sm hover:border-gray-400 disabled:opacity-40"
+                      onClick={startRecording}
+                      aria-label="Start recording"
+                      disabled={recState === "processing" || openAiReady === false}
+                    >
+                      🔴
+                    </button>
+                  )}
                 {recState === "recording" && (
                   <>
                     <button
@@ -898,7 +918,7 @@ export default function NewDocumentationPage() {
                 {formatHMS(recordingSeconds)}
               </div>
               <div className="mt-1 text-xs text-gray-500">
-                {t.recorder.avoidedLabel}: {formatHHMM(writingAvoidedSeconds)}
+                {t.recorder.avoidedLabel}: {formatMMSS(liveAvoidedSeconds)}
               </div>
 
               {recError ? <div className="mt-2 text-[11px] text-red-600">{recError}</div> : null}
@@ -941,23 +961,23 @@ export default function NewDocumentationPage() {
 
       <style jsx>{`
         .wave-bar {
-          width: 6px;
-          height: 16px;
+          width: 7px;
+          height: 14px;
           border-radius: 999px;
-          background: #7fcfe5;
-          opacity: 0.7;
+          background: #9ad2ea;
+          opacity: 0.6;
           transform-origin: bottom;
         }
         .wave-active {
-          animation: wave 1.15s ease-in-out infinite;
+          animation: wave 1.3s ease-in-out infinite;
         }
         @keyframes wave {
           0% {
-            height: 10px;
+            height: 12px;
             opacity: 0.5;
           }
           50% {
-            height: 44px;
+            height: 52px;
             opacity: 0.95;
           }
           100% {

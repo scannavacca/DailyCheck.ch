@@ -11,7 +11,8 @@ import { AppTutorial } from "@/components/AppTutorial";
 const copy = {
   de: {
     title: "Dashboard",
-    newDoc: "Neue Dokumentation",
+    dashboard: "Dashboard",
+    newDoc: "Neue Diktat",
     templates: "Vorlagen",
     icd10: "ICD-10 Kategorien",
     checklists: "Dokumentations-Tools",
@@ -21,6 +22,7 @@ const copy = {
   },
   en: {
     title: "Dashboard",
+    dashboard: "Dashboard",
     newDoc: "New documentation",
     templates: "Templates",
     icd10: "ICD-10 categories",
@@ -31,6 +33,7 @@ const copy = {
   },
   it: {
     title: "Dashboard",
+    dashboard: "Dashboard",
     newDoc: "Nuova documentazione",
     templates: "Modelli",
     icd10: "Categorie ICD-10",
@@ -41,6 +44,7 @@ const copy = {
   },
   fr: {
     title: "Dashboard",
+    dashboard: "Dashboard",
     newDoc: "Nouvelle documentation",
     templates: "Modeles",
     icd10: "Categories ICD-10",
@@ -76,6 +80,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             className="flex flex-wrap gap-4 text-base font-medium text-gray-800"
             data-tour="dashboard-menu"
           >
+            <Link className="hover:underline" href="/app/dashboard">
+              {t.dashboard}
+            </Link>
             <Link
               className="hover:underline"
               href="/app/new"

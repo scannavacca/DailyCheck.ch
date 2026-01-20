@@ -14,7 +14,7 @@ const copy = {
     welcomeNote: "Sie sind eine:r der wenigen vorselektierten Tester:innen.",
     startTitle: "Start",
     startBody: "Neue Diktation erstellen oder Audio hochladen.",
-    newDictation: "Neue Diktation",
+    newDictation: "Neue Diktat",
     templates: "Vorlagen",
     recentTitle: "Letzte Dokumente (Demo)",
     recentBody:
