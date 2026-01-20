@@ -26,8 +26,6 @@ type DemoLoginRecord = {
 };
 
 const DEMO_LOG_KEY = "demo_login_log";
-const TOUR_SEEN_KEY = "dailycheck_tour_seen";
-const TOUR_STEP_KEY = "dailycheck_tour_step";
 
 export function addDemoLoginRecord(firstName: string) {
   const trimmed = firstName.trim();
@@ -50,12 +48,4 @@ export function getDemoLoginRecords(): DemoLoginRecord[] {
   } catch {
     return [];
   }
-}
-
-export function primeTutorialIfNeeded() {
-  if (typeof window === "undefined") return;
-  const seen = localStorage.getItem(TOUR_SEEN_KEY);
-  if (seen === "yes") return;
-  localStorage.setItem(TOUR_STEP_KEY, "0");
-  localStorage.removeItem(TOUR_SEEN_KEY);
 }

@@ -6,7 +6,6 @@ import { isLoggedIn, logoutDemo } from "@/lib/demoAuth";
 import { useRouter } from "next/navigation";
 import { useLanguage } from "@/components/LanguageProvider";
 import { WellbeingFloatingChat } from "@/components/WellbeingFloatingChat";
-import { AppTutorial } from "@/components/AppTutorial";
 
 const copy = {
   de: {
@@ -87,9 +86,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               className="hover:underline"
               href="/app/new"
               data-tour="nav-new-doc"
-              onClick={() => {
-                window.dispatchEvent(new CustomEvent("tour-advance", { detail: "new-doc" }));
-              }}
             >
               {t.newDoc}
             </Link>
@@ -123,7 +119,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
       {children}
       <WellbeingFloatingChat />
-      <AppTutorial />
     </div>
   );
 }

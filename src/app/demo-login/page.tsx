@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useLanguage } from "@/components/LanguageProvider";
-import { addDemoLoginRecord, loginDemo, primeTutorialIfNeeded, setDemoFirstName } from "@/lib/demoAuth";
+import { addDemoLoginRecord, loginDemo, setDemoFirstName } from "@/lib/demoAuth";
 
 const copy = {
   de: {
@@ -81,7 +81,6 @@ export default function DemoLoginPage() {
           setError(null);
           setDemoFirstName(trimmed);
           addDemoLoginRecord(trimmed);
-          primeTutorialIfNeeded();
           loginDemo();
           router.push("/app/dashboard");
         }}

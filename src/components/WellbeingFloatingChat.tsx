@@ -12,7 +12,6 @@ type Copy = {
   placeholder: string;
   send: string;
   temporaryNote: string;
-  restart: string;
 };
 
 const copyByLang: Record<string, Copy> = {
@@ -22,7 +21,6 @@ const copyByLang: Record<string, Copy> = {
     placeholder: "Frage eingeben...",
     send: "Senden",
     temporaryNote: "Temporäre Sitzung: keine Speicherung.",
-    restart: "Tutorial neu starten",
   },
   en: {
     title: "Bot assistant",
@@ -30,7 +28,6 @@ const copyByLang: Record<string, Copy> = {
     placeholder: "Type a question...",
     send: "Send",
     temporaryNote: "Temporary session: no storage.",
-    restart: "Restart tutorial",
   },
   it: {
     title: "Bot assistant",
@@ -38,7 +35,6 @@ const copyByLang: Record<string, Copy> = {
     placeholder: "Scrivi una domanda...",
     send: "Invia",
     temporaryNote: "Sessione temporanea: nessun salvataggio.",
-    restart: "Restart tutorial",
   },
   fr: {
     title: "Bot assistant",
@@ -46,7 +42,6 @@ const copyByLang: Record<string, Copy> = {
     placeholder: "Saisissez une question...",
     send: "Envoyer",
     temporaryNote: "Session temporaire: aucune sauvegarde.",
-    restart: "Restart tutorial",
   },
 };
 
@@ -163,18 +158,6 @@ export function WellbeingFloatingChat() {
       ) : null}
 
       <div className="flex flex-col items-center gap-2">
-        <button
-          type="button"
-          className="rounded-full border bg-white px-3 py-1 text-[11px] font-semibold text-gray-700 shadow-md transition hover:border-gray-400 hover:text-gray-900 animate-pulse"
-          onClick={() => {
-            if (typeof window === "undefined") return;
-            window.localStorage.removeItem("dailycheck_tour_seen");
-            window.localStorage.setItem("dailycheck_tour_step", "0");
-            window.dispatchEvent(new CustomEvent("tour-restart"));
-          }}
-        >
-          {t.restart}
-        </button>
         <button
           className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-600 text-white shadow-lg hover:bg-blue-700"
           onClick={() => setOpen((v) => !v)}

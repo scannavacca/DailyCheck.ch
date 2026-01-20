@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useLanguage } from "@/components/LanguageProvider";
+import { loadTemplates, Template } from "@/lib/templateStore";
 import { useOpenAIReady } from "@/lib/useOpenAIReady";
 
 function formatHMS(totalSeconds: number) {
@@ -46,33 +47,7 @@ function formatMMSS(totalSeconds: number) {
   return `${minutes}`.padStart(2, "0") + ":" + `${seconds}`.padStart(2, "0");
 }
 
-type TemplateOption = { id: string; name: string; body: string };
-
-const templateOptions: TemplateOption[] = [
-  {
-    id: "soap",
-    name: "SOAP",
-    body:
-      "SOAP Note\n\nSubjective:\n{{TRANSCRIPT}}\n\nObjective:\n- \n\nAssessment:\n- \n\nPlan:\n- \n\nSummary:\n{{SUMMARY}}\n",
-  },
-  {
-    id: "psych-progress",
-    name: "Psych Progress Note",
-    body:
-      "Psych Progress Note\n\nDate: {{DATE}}\n\nSession Summary:\n{{TRANSCRIPT}}\n\nAssessment:\n- \n\nPlan:\n- \n\nSummary:\n{{SUMMARY}}\n",
-  },
-  {
-    id: "kurzbericht",
-    name: "Kurzbericht",
-    body:
-      "Kurzbericht\n\nDatum: {{DATE}}\n\nKernaussagen:\n{{TRANSCRIPT}}\n\nKurzfazit:\n{{SUMMARY}}\n",
-  },
-  {
-    id: "custom",
-    name: "Custom",
-    body: "Custom Template\n\n{{TRANSCRIPT}}\n\nSummary:\n{{SUMMARY}}\n",
-  },
-];
+const TEMPLATE_STORAGE_KEY = "dailycheck_templates_v1";
 
 function fillTemplate(tpl: string, vars: Record<string, string>) {
   let out = tpl;
@@ -381,8 +356,8 @@ export default function NewDocumentationPage() {
   const { language } = useLanguage();
   const t = copy[language];
   const openAiReady = useOpenAIReady();
-  const templates = templateOptions;
-  const [templateId, setTemplateId] = useState(templates[0]?.id ?? "");
+  const [templates, setTemplates] = useState<Template[]>([]);
+  const [templateId, setTemplateId] = useState("");
 
   const [supplementText, setSupplementText] = useState("");
   const [tone, setTone] = useState(t.recorder.tones[0]);
@@ -415,6 +390,26 @@ export default function NewDocumentationPage() {
   useEffect(() => {
     setTone(copy[language].recorder.tones[0]);
   }, [language]);
+
+  useEffect(() => {
+    const loaded = loadTemplates();
+    setTemplates(loaded);
+    setTemplateId((prev) => (prev && loaded.some((tpl) => tpl.id === prev) ? prev : loaded[0]?.id ?? ""));
+  }, []);
+
+  useEffect(() => {
+    function handleStorage(event: StorageEvent) {
+      if (event.key !== TEMPLATE_STORAGE_KEY) return;
+      const loaded = loadTemplates();
+      setTemplates(loaded);
+      setTemplateId((prev) =>
+        prev && loaded.some((tpl) => tpl.id === prev) ? prev : loaded[0]?.id ?? ""
+      );
+    }
+
+    window.addEventListener("storage", handleStorage);
+    return () => window.removeEventListener("storage", handleStorage);
+  }, []);
 
   useEffect(() => {
     const weekStart = getWeekStartISO(new Date());

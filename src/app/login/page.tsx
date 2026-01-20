@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { loginDemo, primeTutorialIfNeeded } from "@/lib/demoAuth";
+import { loginDemo } from "@/lib/demoAuth";
 import { useLanguage } from "@/components/LanguageProvider";
 
 type Strength = "none" | "weak" | "ok" | "strong";
@@ -200,7 +200,6 @@ export default function LoginPage() {
     if (!code.trim()) return setError(t.errors.codeRequired);
     if (!sentCode || code.trim() !== sentCode) return setError(t.errors.codeInvalid);
 
-    primeTutorialIfNeeded();
     loginDemo();
     router.push("/app/dashboard");
   }
@@ -235,7 +234,6 @@ export default function LoginPage() {
           <button
             className="flex w-full items-center justify-center gap-2 rounded-2xl border bg-white px-4 py-2 text-sm font-semibold hover:bg-gray-50"
             onClick={() => {
-              primeTutorialIfNeeded();
               loginDemo();
               router.push("/app/dashboard");
             }}

@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { openai } from "@/lib/openai";
 
 export const runtime = "nodejs";
 
@@ -16,15 +15,27 @@ export async function POST(req: Request) {
       );
     }
 
-    const model = process.env.OPENAI_TRANSCRIBE_MODEL || "gpt-4o-mini-transcribe";
+    const targetUrl = process.env.LOCAL_WHISPER_URL || "http://127.0.0.1:5001/transcribe";
 
-    const result = await openai.audio.transcriptions.create({
-      file,
-      model,
-      language: typeof language === "string" && language ? language : undefined,
+    const forwardForm = new FormData();
+    forwardForm.append("file", file);
+    if (typeof language === "string" && language) {
+      forwardForm.append("language", language);
+    }
+
+    const res = await fetch(targetUrl, {
+      method: "POST",
+      body: forwardForm,
     });
 
-    return NextResponse.json({ text: result.text ?? "" });
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      const detail = body?.detail || body?.error || `Upstream error (${res.status})`;
+      return NextResponse.json({ error: "Transcription failed", detail }, { status: 502 });
+    }
+
+    const data = (await res.json()) as { text?: string };
+    return NextResponse.json({ text: data.text ?? "" });
   } catch (err: any) {
     return NextResponse.json(
       { error: "Transcription failed", detail: err?.message ?? String(err) },
