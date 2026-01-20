@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getDemoLoginRecords } from "@/lib/demoAuth";
 
@@ -25,6 +25,7 @@ export default function WebmasterPage() {
   const [dragId, setDragId] = useState<string | null>(null);
   const [finance, setFinance] = useState<FinanceByMonth>({});
   const [selectedMonth, setSelectedMonth] = useState("");
+  const skipTodosWriteRef = useRef(true);
 
   const months = useMemo(() => {
     const now = new Date();
@@ -68,6 +69,10 @@ export default function WebmasterPage() {
   }, [router]);
 
   useEffect(() => {
+    if (skipTodosWriteRef.current) {
+      skipTodosWriteRef.current = false;
+      return;
+    }
     localStorage.setItem(TODO_KEY, JSON.stringify(todos));
   }, [todos]);
 
