@@ -10,6 +10,7 @@ function formatHMS(totalSeconds: number) {
   const seconds = totalSeconds % 60;
   return `${hours}`.padStart(2, "0") + ":" + `${minutes}`.padStart(2, "0") + ":" + `${seconds}`.padStart(2, "0");
 }
+function getMimeType() {
   const candidates = ["audio/webm;codecs=opus", "audio/webm", "audio/mp4;codecs=mp4a.40.2", "audio/mp4"];
   return candidates.find((type) => MediaRecorder.isTypeSupported(type)) || "";
 }
