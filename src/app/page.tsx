@@ -9,6 +9,7 @@ import { Card } from "@/components/landing/Card";
 import { PricingSection } from "@/components/landing/PricingSection";
 import { QuoteCard } from "@/components/landing/QuoteCard";
 import { PrimaryButton, SecondaryButton } from "@/components/landing/Buttons";
+import VoiceToTextDiagram from "@/components/VoiceToTextDiagram";
 
 const copy = {
   de: {
@@ -1327,9 +1328,6 @@ export default function HomePage() {
             <PrimaryButton href="/early-access" className="h-14 px-6 text-base">
               {t.hero.ctas.primary}
             </PrimaryButton>
-            <SecondaryButton href="/demo-login" className="h-14 px-6 text-base">
-              {t.hero.ctas.secondary}
-            </SecondaryButton>
             <SecondaryButton href="/login" className="h-14 px-6 text-base">
               {t.hero.ctas.login}
             </SecondaryButton>
