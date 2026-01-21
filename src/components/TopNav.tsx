@@ -15,7 +15,6 @@ const copy = {
     privacy: "Datenschutz & FAQ",
     contact: "Kontakt",
     cta: "Early Access",
-    demo: "Demo öffnen",
     menu: "Menü",
   },
   en: {
@@ -25,7 +24,6 @@ const copy = {
     privacy: "Privacy & FAQ",
     contact: "Contact",
     cta: "Request access",
-    demo: "Open demo",
     menu: "Menu",
   },
   it: {
@@ -35,7 +33,6 @@ const copy = {
     privacy: "Privacy e FAQ",
     contact: "Contatto",
     cta: "Richiedi accesso",
-    demo: "Apri demo",
     menu: "Menu",
   },
   fr: {
@@ -45,7 +42,6 @@ const copy = {
     privacy: "Confidentialité & FAQ",
     contact: "Contact",
     cta: "Demander l'acces",
-    demo: "Ouvrir la démo",
     menu: "Menu",
   },
 };
@@ -86,10 +82,7 @@ export function TopNav() {
           </Link>
 
           <div className="flex items-center gap-3">
-            <SecondaryButton href="/demo-login" className="hidden md:inline-flex">
-              {t.demo}
-            </SecondaryButton>
-            <PrimaryButton href="/contact" className="hidden md:inline-flex">
+            <PrimaryButton href="/early-access" className="hidden md:inline-flex">
               {t.cta}
             </PrimaryButton>
             <button
@@ -132,12 +125,9 @@ export function TopNav() {
           <Link className="hover:underline" href="/login">
             {t.login}
           </Link>
-          <PrimaryButton href="/contact" className="md:hidden">
+          <PrimaryButton href="/early-access" className="md:hidden">
             {t.cta}
           </PrimaryButton>
-          <SecondaryButton href="/demo-login" className="md:hidden">
-            {t.demo}
-          </SecondaryButton>
           <LanguageSwitcher />
         </nav>
       </div>

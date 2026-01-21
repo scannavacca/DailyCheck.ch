@@ -16,11 +16,10 @@ export default function OpenAIHealthBanner() {
         <div className="flex items-start gap-3 px-4 py-3">
           <div className="mt-0.5 h-2.5 w-2.5 flex-none rounded-full bg-amber-500" />
           <div className="min-w-0">
-            <div className="text-sm font-medium text-black/90">OpenAI not configured</div>
+            <div className="text-sm font-medium text-black/90">Ollama not running</div>
             <div className="mt-0.5 text-sm text-black/60">
-              Add <span className="font-mono text-black/70">OPENAI_API_KEY</span> to{" "}
-              <span className="font-mono text-black/70">.env.local</span> and restart the dev
-              server. Dictation and chat are disabled until then.
+              Start Ollama on <span className="font-mono text-black/70">localhost:11434</span>.
+              Dictation and chat are disabled until then.
             </div>
           </div>
 

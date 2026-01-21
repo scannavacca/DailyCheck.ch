@@ -353,8 +353,8 @@ export function WhisperLiveRecorder(props: Props) {
       </div>
       {disabled ? (
         <div className="text-xs text-gray-500">
-          OpenAI API key missing. Add <span className="font-mono">OPENAI_API_KEY</span> to{" "}
-          <span className="font-mono">.env.local</span>.
+          Ollama is not running. Start it on{" "}
+          <span className="font-mono">localhost:11434</span>.
         </div>
       ) : null}
     </div>

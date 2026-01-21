@@ -10,6 +10,7 @@ const copy = {
     terms: "AGB",
     contact: "Kontakt",
     imprint: "Impressum",
+    demo: "Demo öffnen",
   },
   en: {
     privacy: "Privacy & FAQ",
@@ -17,6 +18,7 @@ const copy = {
     terms: "Terms",
     contact: "Contact",
     imprint: "Imprint",
+    demo: "Open demo",
   },
   it: {
     privacy: "Privacy e FAQ",
@@ -24,6 +26,7 @@ const copy = {
     terms: "Termini",
     contact: "Contatto",
     imprint: "Note legali",
+    demo: "Apri demo",
   },
   fr: {
     privacy: "Confidentialité & FAQ",
@@ -31,6 +34,7 @@ const copy = {
     terms: "Conditions",
     contact: "Contact",
     imprint: "Mentions légales",
+    demo: "Ouvrir la démo",
   },
 };
 
@@ -57,6 +61,9 @@ export function Footer() {
           </Link>
           <Link className="hover:underline" href="/imprint">
             {t.imprint}
+          </Link>
+          <Link className="hover:underline" href="/demo-login">
+            {t.demo}
           </Link>
         </div>
       </div>

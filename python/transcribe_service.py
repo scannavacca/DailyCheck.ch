@@ -1,4 +1,5 @@
 import tempfile
+from pathlib import Path
 from typing import Optional
 
 from fastapi import FastAPI, File, UploadFile
@@ -10,7 +11,8 @@ model = WhisperModel("small", device="cpu")
 
 @app.post("/transcribe")
 async def transcribe(file: UploadFile = File(...), language: Optional[str] = None):
-    with tempfile.NamedTemporaryFile(suffix=".audio", delete=True) as tmp:
+    suffix = Path(file.filename or "").suffix or ".audio"
+    with tempfile.NamedTemporaryFile(suffix=suffix, delete=True) as tmp:
         tmp.write(await file.read())
         tmp.flush()
         segments, _info = model.transcribe(tmp.name, language=language or None)

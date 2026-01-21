@@ -9,7 +9,6 @@ import { Card } from "@/components/landing/Card";
 import { PricingSection } from "@/components/landing/PricingSection";
 import { QuoteCard } from "@/components/landing/QuoteCard";
 import { PrimaryButton, SecondaryButton } from "@/components/landing/Buttons";
-import VoiceToTextDiagram from "@/components/VoiceToTextDiagram";
 
 const copy = {
   de: {
@@ -1325,7 +1324,7 @@ export default function HomePage() {
           </div>
 
           <div className="flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
-            <PrimaryButton href="/contact" className="h-14 px-6 text-base">
+            <PrimaryButton href="/early-access" className="h-14 px-6 text-base">
               {t.hero.ctas.primary}
             </PrimaryButton>
             <SecondaryButton href="/demo-login" className="h-14 px-6 text-base">
@@ -1446,7 +1445,7 @@ export default function HomePage() {
                 {t.finalCta.body}
               </p>
               <div className="flex flex-col gap-3 sm:flex-row">
-                <PrimaryButton href="/contact">{t.finalCta.primary}</PrimaryButton>
+                <PrimaryButton href="/early-access">{t.finalCta.primary}</PrimaryButton>
                 <SecondaryButton href="/demo-login">{t.finalCta.secondary}</SecondaryButton>
               </div>
             </div>

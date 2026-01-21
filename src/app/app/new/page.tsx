@@ -637,7 +637,7 @@ export default function NewDocumentationPage() {
   async function startRecording() {
     if (recState === "processing") return;
     if (openAiReady === false) {
-      setRecError("OpenAI API key missing.");
+      setRecError("Ollama is not running.");
       return;
     }
     if (typeof MediaRecorder === "undefined") {
@@ -920,8 +920,7 @@ export default function NewDocumentationPage() {
               {recError ? <div className="mt-2 text-[11px] text-red-600">{recError}</div> : null}
               {openAiReady === false ? (
                 <div className="mt-2 text-[11px] text-gray-500">
-                  OpenAI API key missing. Add <span className="font-mono">OPENAI_API_KEY</span> to{" "}
-                  <span className="font-mono">.env.local</span>.
+                  Ollama is not running. Start it on <span className="font-mono">localhost:11434</span>.
                 </div>
               ) : null}
 

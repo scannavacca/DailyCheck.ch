@@ -136,7 +136,7 @@ export function WellbeingFloatingChat() {
               <div className="mt-3 flex items-center gap-2">
                 <input
                   className="w-full rounded-xl border px-3 py-2 text-xs disabled:bg-gray-100"
-                  placeholder={ready === false ? "OpenAI not configured" : t.placeholder}
+                  placeholder={ready === false ? "Ollama not running" : t.placeholder}
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   disabled={busy || ready === false}

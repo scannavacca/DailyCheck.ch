@@ -113,7 +113,7 @@ export default function WellbeingPage() {
         <div className="mt-3 flex gap-2">
           <input
             className="w-full rounded-xl border px-3 py-2 text-sm disabled:bg-gray-100"
-            placeholder={ready === false ? "OpenAI not configured" : t.inputPlaceholderEnabled}
+              placeholder={ready === false ? "Ollama not running" : t.inputPlaceholderEnabled}
             value={input}
             onChange={(e) => setInput(e.target.value)}
             disabled={busy || ready === false}

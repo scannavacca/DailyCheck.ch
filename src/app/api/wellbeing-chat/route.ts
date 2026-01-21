@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { openai } from "@/lib/openai";
 
 export const runtime = "nodejs";
 
@@ -32,12 +31,26 @@ export async function POST(req: Request) {
           },
         ];
 
-    const response = await openai.responses.create({
-      model: process.env.OPENAI_CHAT_MODEL || "gpt-4.1-mini",
-      input: [{ role: "system", content: SYSTEM_POLICY }, ...input],
+    const model = process.env.OLLAMA_MODEL || "llama3.2";
+    const ollamaUrl = process.env.OLLAMA_URL || "http://127.0.0.1:11434/api/chat";
+    const res = await fetch(ollamaUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model,
+        stream: false,
+        messages: [{ role: "system", content: SYSTEM_POLICY }, ...input],
+      }),
     });
 
-    const text = (response as any).output_text ?? "";
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      const detail = body?.error || `Ollama error (${res.status})`;
+      return NextResponse.json({ error: detail }, { status: 502 });
+    }
+
+    const data = (await res.json()) as { message?: { content?: string } };
+    const text = data?.message?.content?.trim() ?? "";
     return NextResponse.json({ reply: text });
   } catch (e: any) {
     return NextResponse.json({ error: e?.message ?? "Server error." }, { status: 500 });

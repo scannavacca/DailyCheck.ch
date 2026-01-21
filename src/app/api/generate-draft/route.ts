@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { openai } from "@/lib/openai";
 
 export const runtime = "nodejs";
 
@@ -26,7 +25,8 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Missing source text." }, { status: 400 });
     }
 
-    const model = process.env.OPENAI_SUMMARY_MODEL || "gpt-4o-mini";
+    const model = process.env.OLLAMA_MODEL || "llama3.2";
+    const ollamaUrl = process.env.OLLAMA_URL || "http://127.0.0.1:11434/api/chat";
 
     const system =
       "You are a clinical documentation assistant. Fill the provided template using the dictation and any supplemental notes. " +
@@ -41,16 +41,27 @@ export async function POST(req: Request) {
       body.docType ? `\nDocument type: ${body.docType}` : "",
     ].join("\n");
 
-    const completion = await openai.chat.completions.create({
-      model,
-      temperature: 0.2,
-      messages: [
-        { role: "system", content: system },
-        { role: "user", content: user },
-      ],
+    const res = await fetch(ollamaUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model,
+        stream: false,
+        messages: [
+          { role: "system", content: system },
+          { role: "user", content: user },
+        ],
+      }),
     });
 
-    const content = completion.choices[0]?.message?.content?.trim() ?? "";
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      const detail = body?.error || `Ollama error (${res.status})`;
+      return NextResponse.json({ error: "Draft generation failed", detail }, { status: 502 });
+    }
+
+    const data = (await res.json()) as { message?: { content?: string } };
+    const content = data?.message?.content?.trim() ?? "";
     return NextResponse.json({ draft: content });
   } catch (err: any) {
     return NextResponse.json(
