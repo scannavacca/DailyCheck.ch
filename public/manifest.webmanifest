@@ -1,8 +1,11 @@
 {
   "name": "CheckApp",
   "short_name": "CheckApp",
-  "start_url": "/welcome",
+  "start_url": "/welcome?source=pwa",
+  "scope": "/",
+  "id": "/welcome",
   "display": "standalone",
+  "display_override": ["standalone"],
   "background_color": "#081A2C",
   "theme_color": "#081A2C",
   "icons": [

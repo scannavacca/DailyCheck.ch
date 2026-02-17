@@ -4,10 +4,6 @@ import type { NextRequest } from "next/server";
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  if (pathname === "/welcome") {
-    return NextResponse.redirect(new URL("/welcome.html", request.url));
-  }
-
   if (
     pathname.startsWith("/_next") ||
     pathname.startsWith("/_expo") ||
