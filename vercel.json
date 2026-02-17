@@ -1,4 +1,11 @@
 {
+  "redirects": [
+    {
+      "source": "/app-index.html",
+      "destination": "/",
+      "permanent": true
+    }
+  ],
   "rewrites": [
     {
       "source": "/_expo/:path*",
