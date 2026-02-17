@@ -25,6 +25,22 @@
       "destination": "/favicon.ico"
     },
     {
+      "source": "/sw.js",
+      "destination": "/sw.js"
+    },
+    {
+      "source": "/manifest.webmanifest",
+      "destination": "/manifest.webmanifest"
+    },
+    {
+      "source": "/image/:path*",
+      "destination": "/image/:path*"
+    },
+    {
+      "source": "/Logo.png",
+      "destination": "/Logo.png"
+    },
+    {
       "source": "/:path*",
       "destination": "/app-index.html"
     }
