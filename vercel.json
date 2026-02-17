@@ -1,6 +1,11 @@
 {
   "redirects": [
     {
+      "source": "/welcome",
+      "destination": "/welcome.html",
+      "permanent": true
+    },
+    {
       "source": "/app-index.html",
       "destination": "/",
       "permanent": true
