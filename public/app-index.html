@@ -848,5 +848,52 @@ input::-webkit-search-cancel-button,input::-webkit-search-decoration,input::-web
 @keyframes r-1pzkwqh{0%{transform:translateY(100%);}100%{transform:translateY(0%);}}
 @keyframes r-imtty0{0%{opacity:0;}100%{opacity:1;}}
 @keyframes r-q67da2{0%{transform:translateX(-100%);}100%{transform:translateX(400%);}}
-@keyframes r-t2lo5v{0%{opacity:1;}100%{opacity:0;}}</style><script type="module">globalThis.__EXPO_ROUTER_HYDRATE__=true;</script><link rel="icon" href="/favicon.ico" /><link rel="manifest" href="/manifest.webmanifest" /><meta name="theme-color" content="#081A2C" /><script>if("serviceWorker" in navigator){window.addEventListener("load",()=>{navigator.serviceWorker.register("/sw.js");});}</script></head><body><div id="root"><div class="css-g5y9jx r-13awgt0"><!--$--><div class="css-g5y9jx" style="flex:1"><div style="position:absolute;left:0;right:0;top:0;bottom:0;pointer-events:none;visibility:hidden"></div><div class="css-g5y9jx r-13awgt0"><div class="css-g5y9jx r-13awgt0 r-1p0dtai r-1d2f490 r-u8s1d r-zchlnj r-ipm5af" style="background-color:rgba(242,242,242,1.00);display:flex"><div class="css-g5y9jx r-13awgt0"><div class="css-g5y9jx r-13awgt0"><!--$--><!--/$--></div></div></div></div></div><!--/$--></div></div><script src="/_expo/static/js/web/entry-e11420920714fd714fe386f4dd906d7f.js" defer></script>
+@keyframes r-t2lo5v{0%{opacity:1;}100%{opacity:0;}}</style><script type="module">globalThis.__EXPO_ROUTER_HYDRATE__=true;</script><link rel="icon" href="/favicon.ico" /><link rel="manifest" href="/manifest.webmanifest" /><meta name="theme-color" content="#081A2C" /><script>if("serviceWorker" in navigator){window.addEventListener("load",()=>{navigator.serviceWorker.register("/sw.js");});}</script>
+<style id="pwa-splash-style">
+  #pwa-splash {
+    position: fixed;
+    inset: 0;
+    background: #081A2C;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+  }
+  #pwa-splash img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+</style>
+</head><body><div id="root"><div class="css-g5y9jx r-13awgt0"><!--$--><div class="css-g5y9jx" style="flex:1"><div style="position:absolute;left:0;right:0;top:0;bottom:0;pointer-events:none;visibility:hidden"></div><div class="css-g5y9jx r-13awgt0"><div class="css-g5y9jx r-13awgt0 r-1p0dtai r-1d2f490 r-u8s1d r-zchlnj r-ipm5af" style="background-color:rgba(242,242,242,1.00);display:flex"><div class="css-g5y9jx r-13awgt0"><div class="css-g5y9jx r-13awgt0"><!--$--><!--/$--></div></div></div></div></div><!--/$--></div></div><script src="/_expo/static/js/web/entry-e11420920714fd714fe386f4dd906d7f.js" defer></script>
+
+<div id="pwa-splash" aria-hidden="true">
+  <img src="/splash.png" alt="" />
+</div>
+<script>
+  (function () {
+    var splash = document.getElementById('pwa-splash');
+    if (!splash) return;
+    var removed = false;
+    function remove() {
+      if (removed) return;
+      removed = true;
+      splash.style.opacity = '0';
+      splash.style.transition = 'opacity 200ms ease';
+      setTimeout(function () {
+        splash && splash.remove();
+      }, 220);
+    }
+    window.addEventListener('load', remove);
+    var root = document.getElementById('root');
+    if (root) {
+      var observer = new MutationObserver(function () {
+        if (root.children.length > 0) remove();
+      });
+      observer.observe(root, { childList: true });
+    }
+    setTimeout(remove, 3000);
+  })();
+</script>
+
 </body></html>
