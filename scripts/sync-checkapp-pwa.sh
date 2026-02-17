@@ -28,4 +28,27 @@ if [ -f "$EXPORT_DIR/favicon.ico" ]; then
   cp "$EXPORT_DIR/favicon.ico" "$TARGET_PUBLIC_DIR/favicon.ico"
 fi
 
+if [ -f "$TARGET_PUBLIC_DIR/app-index.html" ]; then
+  python3 - <<'PY'
+from pathlib import Path
+
+path = Path("DailyCheck.ch/public/app-index.html")
+if not path.exists():
+    raise SystemExit(0)
+
+html = path.read_text(encoding="utf-8")
+inject = """
+<link rel="manifest" href="/manifest.webmanifest"/>
+<meta name="theme-color" content="#081A2C"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<link rel="apple-touch-icon" href="/image/logo.png"/>
+"""
+
+if "manifest.webmanifest" not in html:
+    html = html.replace("</head>", inject + "</head>")
+    path.write_text(html, encoding="utf-8")
+PY
+fi
+
 echo "PWA export synced. Deploy DailyCheck.ch for app.dailycheck.ch."
